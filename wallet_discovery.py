@@ -2,7 +2,6 @@ import requests
 import sqlite3
 import json
 import time
-from datetime import datetime, timedelta
 
 DB_FILE = "wallets.db"
 JSON_OUTPUT = "monitored_wallets.json"
