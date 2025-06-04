@@ -4,6 +4,8 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import os
 from datetime import datetime
+import logging
+from utils import log
 
 # Set up Google Sheets connection
 scope = [
@@ -28,7 +30,7 @@ try:
     # ✅ Drop any rows where datetime parsing failed
     df = df.dropna(subset=["timestamp"])
     if df.empty:
-        print("[!] No valid rows found in trade_log.csv.")
+        log("[!] No valid rows found in trade_log.csv.", logging.WARNING)
         exit()
 
     # Group by token
@@ -74,7 +76,7 @@ try:
         + summary_data,
     )
 
-    print("[✓] Portfolio summary uploaded to Google Sheets.")
+    log("[✓] Portfolio summary uploaded to Google Sheets.", logging.INFO)
 
 except Exception as e:
-    print(f"[✗] Failed to update portfolio: {e}")
+    log(f"[✗] Failed to update portfolio: {e}", logging.ERROR)

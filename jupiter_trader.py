@@ -8,6 +8,8 @@ from solana.keypair import Keypair
 from solana.rpc.types import TxOpts
 import config
 import os
+import logging
+from utils import log
 
 client = Client(config.RPC_URL)
 wallet = Keypair.from_secret_key(base64.b64decode(config.USER_WALLET_PRIVATE_KEY))
@@ -41,7 +43,7 @@ async def execute_jupiter_swap(route):
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=payload) as response:
             if response.status != 200:
-                print("Swap preparation failed.")
+                log("Swap preparation failed.", logging.ERROR)
                 return None
             swap_data = await response.json()
 
