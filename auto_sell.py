@@ -1,7 +1,8 @@
 import time
 from datetime import datetime, timedelta
 from decimal import Decimal
-import requests
+import asyncio
+import aiohttp
 from trade_log import get_sol_usd_price, log_trade
 from utils import log
 from sync_to_sheets import sync_csv_to_google_sheet
@@ -17,27 +18,28 @@ MAX_HOLD_DURATION = timedelta(hours=3)  # Max time to hold token
 
 
 # Placeholder function for real-time SPL token price
-def fetch_token_price_usd(token_mint):
+async def fetch_token_price_usd(token_mint):
     try:
-        resp = requests.get(
-            f"https://price.jup.ag/v4/price?ids={token_mint}&vsToken=So11111111111111111111111111111111111111112",
-            timeout=5,
-        )
-        data = resp.json()
-        price_sol = Decimal(str(data["data"][token_mint]["price"]))
-        sol_usd = get_sol_usd_price()
-        return price_sol * sol_usd
+        timeout = aiohttp.ClientTimeout(total=5)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(
+                f"https://price.jup.ag/v4/price?ids={token_mint}&vsToken=So11111111111111111111111111111111111111112"
+            ) as resp:
+                data = await resp.json()
+                price_sol = Decimal(str(data["data"][token_mint]["price"]))
+                sol_usd = await get_sol_usd_price()
+                return price_sol * sol_usd
     except Exception as e:
         log(f"[WARNING] Failed to fetch price for {token_mint}: {e}")
         return Decimal("0.00")
 
 
-def check_portfolio_for_sells():
+async def check_portfolio_for_sells():
     to_sell = []
 
     for token_mint, info in list(portfolio.items()):
         entry_price = info["entry_price"]
-        current_price = fetch_token_price_usd(token_mint)
+        current_price = await fetch_token_price_usd(token_mint)
         if current_price == 0:
             continue  # Skip if price fetch failed
 
@@ -75,16 +77,16 @@ def mark_new_token(token_mint, entry_price, amount):
     log(f"[PORTFOLIO] Added {token_mint} at {entry_price} USD")
 
 
-def execute_sell(token_mint):
+async def execute_sell(token_mint):
     if token_mint not in portfolio:
         return
     info = portfolio[token_mint]
-    current_price = fetch_token_price_usd(token_mint)
+    current_price = await fetch_token_price_usd(token_mint)
     if current_price == 0:
         return
 
     usd_value = Decimal(info["amount"]) * current_price
-    log_trade(
+    await log_trade(
         token_mint,
         "AUTOSELL",
         info["amount"],
@@ -99,9 +101,12 @@ def execute_sell(token_mint):
 
 
 if __name__ == "__main__":
-    mark_new_token("DUMMY2TOKEN2222", "1.00", 1000)
-    for _ in range(10):
-        time.sleep(3)
-        tokens = check_portfolio_for_sells()
-        for token in tokens:
-            execute_sell(token)
+    async def demo():
+        mark_new_token("DUMMY2TOKEN2222", "1.00", 1000)
+        for _ in range(10):
+            await asyncio.sleep(3)
+            tokens = await check_portfolio_for_sells()
+            for token in tokens:
+                await execute_sell(token)
+
+    asyncio.run(demo())
