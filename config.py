@@ -76,6 +76,12 @@ class Config:
     helius_rpc_url: Optional[str] = None
     log_level: str = "INFO"
     practice_mode: bool = True
+    cielo_api_key: Optional[str] = None
+    twitter_api_key: Optional[str] = None
+    twitter_api_secret: Optional[str] = None
+    twitter_access_token: Optional[str] = None
+    twitter_access_secret: Optional[str] = None
+    google_credentials: str = "google_credentials.json"
 
     @classmethod
     def load(
@@ -112,6 +118,14 @@ class Config:
             rpc_url=env.get("RPC_URL"),
             helius_rpc_url=env.get("HELIUS_RPC_URL"),
             log_level=env.get("LOG_LEVEL", "INFO"),
+            cielo_api_key=env.get("CIELO_API_KEY"),
+            twitter_api_key=env.get("TWITTER_API_KEY"),
+            twitter_api_secret=env.get("TWITTER_API_SECRET"),
+            twitter_access_token=env.get("TWITTER_ACCESS_TOKEN"),
+            twitter_access_secret=env.get("TWITTER_ACCESS_SECRET"),
+            google_credentials=env.get(
+                "GOOGLE_CREDENTIALS", "google_credentials.json"
+            ),
         )
 
         cfg._validate()
