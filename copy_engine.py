@@ -25,7 +25,8 @@ async def execute_trade(trade):
         log("Balance too low to trade.")
         return
 
-    sol_amount = Decimal("0.01")  # Dynamically 1% of balance
+    # Use 1% of the current SOL balance for the trade amount
+    sol_amount = Decimal(balance) * Decimal("0.01")
     lamports = int(sol_amount * 1e9)
 
     if config.PRACTICE_MODE:
