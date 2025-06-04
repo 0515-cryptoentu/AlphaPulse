@@ -11,6 +11,8 @@ This bot monitors high-performing Solana wallets and mirrors their trades using 
    - `USER_WALLET_PRIVATE_KEY`
    - `RPC_URL` / `HELIUS_RPC_URL`
    - API keys for Cielo, Twitter, Birdeye, etc.
+   - Optionally configure `VAULT_ADDR`, `VAULT_TOKEN` and `VAULT_SECRET_PATH`
+     to load these values from [HashiCorp Vault](https://www.vaultproject.io/).
 4. Start the bot: `alphapulse bot`
 5. Interact with it in Telegram using `/start` and `/status`.
 6. Run `alphapulse scrape` regularly to refresh `monitored_wallets.json`.
@@ -39,8 +41,22 @@ include:
 - `CIELO_API_KEY` – API key for Cielo wallet scraping
 - `TWITTER_API_KEY`, `TWITTER_API_SECRET`, etc. – Twitter credentials
 - `BIRDEYE_API_KEY` – for token volume lookups
+- `VAULT_ADDR`, `VAULT_TOKEN`, `VAULT_SECRET_PATH` – settings to pull the above
+  credentials from HashiCorp Vault if available
 
 See `.env.example` for the complete list.
+
+### Protecting wallet keys
+
+If a secrets manager isn’t available, encrypt the value of
+`USER_WALLET_PRIVATE_KEY` before storing it. One simple approach is using
+`openssl`:
+
+```bash
+echo "<base64 key>" | openssl aes-256-cbc -salt -out wallet.key.enc
+```
+
+Decrypt at runtime and export the result as `USER_WALLET_PRIVATE_KEY`.
 
 ### Testing
 
