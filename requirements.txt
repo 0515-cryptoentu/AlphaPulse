@@ -3,4 +3,7 @@ python-telegram-bot==13.15
 requests
 websocket-client
 aiohttp
-asyncio
+gspread
+oauth2client
+pandas
+tweepy
