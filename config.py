@@ -35,7 +35,13 @@ def _load_dotenv(path: str = ".env") -> None:
 
 
 def _load_from_vault(env: Dict[str, str]) -> Dict[str, str]:
-    """Load secret values from HashiCorp Vault if configuration is present."""
+    """Load secret values from HashiCorp Vault if configuration is present.
+
+    When Vault configuration is supplied all mandatory secrets must be
+    available either in the current ``env`` or inside the Vault payload.  An
+    :class:`EnvironmentError` is raised if any are missing.
+    """
+
     addr = env.get("VAULT_ADDR")
     token = env.get("VAULT_TOKEN")
     secret_path = env.get("VAULT_SECRET_PATH")
@@ -45,23 +51,31 @@ def _load_from_vault(env: Dict[str, str]) -> Dict[str, str]:
     try:
         import hvac
     except Exception:  # pragma: no cover - optional dependency
-        logging.warning("hvac library missing, skipping Vault secrets")
-        return env
+        raise EnvironmentError("hvac library required for Vault integration")
 
     client = hvac.Client(url=addr, token=token)
     if not client.is_authenticated():
-        logging.error("Vault authentication failed")
-        return env
+        raise EnvironmentError("Vault authentication failed")
 
     try:
         secret = client.secrets.kv.v2.read_secret_version(path=secret_path)
     except Exception as exc:  # pragma: no cover - network errors
-        logging.error("Error loading Vault secret: %s", exc)
-        return env
+        raise EnvironmentError(f"Error loading Vault secret: {exc}")
 
     data = secret.get("data", {}).get("data", {})
-    for key, value in data.items():
-        env.setdefault(key, value)
+    # Merge secrets, preferring already provided environment values
+    env = {**data, **env}
+
+    missing = []
+    if not env.get("USER_WALLET_PRIVATE_KEY"):
+        missing.append("USER_WALLET_PRIVATE_KEY")
+    if not env.get("RPC_URL") and not env.get("HELIUS_RPC_URL"):
+        missing.append("RPC_URL or HELIUS_RPC_URL")
+
+    if missing:
+        raise EnvironmentError(
+            "Missing required Vault secrets: " + ", ".join(missing)
+        )
 
     return env
 
