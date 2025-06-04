@@ -8,6 +8,23 @@ WALLET_DB = "wallet_repository.db"
 
 client = Client(RPC_URL)
 
+def init_db():
+    conn = sqlite3.connect(WALLET_DB)
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS wallets (
+            wallet TEXT PRIMARY KEY,
+            source TEXT,
+            last_seen INTEGER,
+            tx_count INTEGER,
+            avg_tx_interval REAL,
+            is_active INTEGER DEFAULT 1,
+            notes TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
 def calculate_roi(wallet):
     # Placeholder for ROI calculation based on wallet's trading history
     # In a real scenario, you would fetch past buy/sell data and calculate ROI
@@ -46,6 +63,7 @@ def get_recent_activity(wallet):
         return 0, -1
 
 def update_wallet_stats():
+    init_db()
     conn = sqlite3.connect(WALLET_DB)
     c = conn.cursor()
     c.execute("SELECT wallet FROM wallets WHERE is_active = 1")
