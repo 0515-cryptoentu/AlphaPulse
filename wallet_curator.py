@@ -1,15 +1,12 @@
 import sqlite3
 import time
-import os
 from solana.rpc.api import Client
 from solana.publickey import PublicKey
+import config
 
-RPC_URL = os.getenv("HELIUS_RPC_URL")
-if not RPC_URL:
-    raise EnvironmentError("HELIUS_RPC_URL environment variable is required")
 WALLET_DB = "wallet_repository.db"
 
-client = Client(RPC_URL)
+client = Client(config.HELIUS_RPC_URL or config.RPC_URL)
 
 
 def init_db():

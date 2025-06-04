@@ -4,16 +4,13 @@ import logging
 from solana.rpc.api import Client
 from solana.publickey import PublicKey
 from copy_engine import execute_trade
-import os
+import config
 
-# ✅ Live RPC endpoint using your Helius API key
-RPC_URL = os.getenv("HELIUS_RPC_URL")
-if not RPC_URL:
-    raise EnvironmentError("HELIUS_RPC_URL environment variable is required")
+# RPC endpoint configured via unified ``config``
 MONITORED_FILE = "monitored_wallets.json"
 SLOT_HISTORY = {}  # Prevent re-processing
 
-client = Client(RPC_URL)
+client = Client(config.HELIUS_RPC_URL or config.RPC_URL)
 
 logging.basicConfig(level=logging.INFO)
 
