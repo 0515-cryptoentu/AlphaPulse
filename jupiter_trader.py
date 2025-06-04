@@ -2,6 +2,7 @@ import requests
 import json
 import base64
 import aiohttp
+import asyncio
 from solana.rpc.api import Client
 from solana.transaction import Transaction
 from solana.keypair import Keypair
@@ -31,7 +32,7 @@ async def fetch_jupiter_swap_route(input_mint, output_mint, amount):
     return None
 
 
-async def execute_jupiter_swap(route):
+async def execute_jupiter_swap(route, retries: int = 3, delay: float = 1.0):
     url = "https://quote-api.jup.ag/v6/swap"
     payload = {
         "route": route,
@@ -40,16 +41,41 @@ async def execute_jupiter_swap(route):
         "feeAccount": None,
         "asLegacyTransaction": True,
     }
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=payload) as response:
-            if response.status != 200:
-                log("Swap preparation failed.", logging.ERROR)
-                return None
-            swap_data = await response.json()
 
-    tx_encoded = swap_data["swapTransaction"]
-    tx = Transaction.deserialize(base64.b64decode(tx_encoded))
-    tx.sign(wallet)
-    return client.send_transaction(
-        tx, wallet, opts=TxOpts(skip_preflight=True, preflight_commitment="confirmed")
-    )
+    swap_data = None
+    for attempt in range(1, retries + 1):
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, json=payload) as response:
+                    if response.status == 200:
+                        swap_data = await response.json()
+                        break
+                    log(
+                        f"[Jupiter] Swap prep failed with status {response.status} (attempt {attempt})",
+                        logging.ERROR,
+                    )
+        except Exception as exc:
+            log(
+                f"[Jupiter] Swap request error on attempt {attempt}: {exc}",
+                logging.ERROR,
+            )
+
+        if attempt < retries:
+            await asyncio.sleep(delay)
+
+    if not swap_data:
+        log("[Jupiter] Exhausted swap retries", logging.ERROR)
+        return None
+
+    try:
+        tx_encoded = swap_data["swapTransaction"]
+        tx = Transaction.deserialize(base64.b64decode(tx_encoded))
+        tx.sign(wallet)
+        return client.send_transaction(
+            tx,
+            wallet,
+            opts=TxOpts(skip_preflight=True, preflight_commitment="confirmed"),
+        )
+    except Exception as exc:
+        log(f"[Jupiter] Transaction send failed: {exc}", logging.ERROR)
+        return None
