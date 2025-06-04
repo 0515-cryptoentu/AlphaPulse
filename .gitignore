@@ -198,3 +198,4 @@ google_credentials.json
 trade_log.csv
 wallets.db
 wallet_repository.db
+monitored_wallets.json
