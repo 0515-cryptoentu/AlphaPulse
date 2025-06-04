@@ -7,6 +7,7 @@ import wallet_manager
 from datetime import datetime
 
 WALLET_DB = "wallet_repository.db"
+HEARTBEAT_FILE = "monitor_heartbeat.txt"
 
 app = FastAPI(title="AlphaPulse Dashboard")
 
@@ -112,6 +113,16 @@ def metrics():
         "total_sol": total_sol,
         "num_trades": len(data),
     }
+
+
+@app.get("/heartbeat")
+def heartbeat():
+    try:
+        with open(HEARTBEAT_FILE) as f:
+            ts = f.read().strip()
+    except Exception:
+        ts = ""
+    return {"timestamp": ts}
 
 
 @app.get("/pnl")

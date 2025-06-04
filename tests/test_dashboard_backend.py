@@ -26,6 +26,7 @@ def create_app(tmp_path):
     api.trade_log.DB_FILE = str(db_path)
     api.trade_log.CSV_FILE = str(tmp_path / "trade_log.csv")
     api.WALLET_DB = str(tmp_path / "wallet_repository.db")
+    api.HEARTBEAT_FILE = str(tmp_path / "hb.txt")
     import auto_sell
     api.auto_sell = auto_sell
     return api.app, api
@@ -114,4 +115,20 @@ def test_additional_endpoints(tmp_path, monkeypatch):
     stats = resp.json()['wallets']
     assert len(stats) == 1
     assert stats[0]['wallet'] == 'W1'
+
+
+def test_heartbeat_endpoint(tmp_path):
+    app, api = create_app(tmp_path)
+    hb_path = tmp_path / 'hb.txt'
+    hb_path.write_text('2024-01-01T00:00:00')
+    api.HEARTBEAT_FILE = str(hb_path)
+
+    async def fetch():
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            return await client.get('/heartbeat')
+
+    resp = asyncio.run(fetch())
+    assert resp.status_code == 200
+    assert resp.json()['timestamp'] == '2024-01-01T00:00:00'
 

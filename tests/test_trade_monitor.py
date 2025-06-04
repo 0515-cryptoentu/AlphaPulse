@@ -84,3 +84,26 @@ def test_websocket_wallets_retry(monkeypatch):
     result = asyncio.run(mod._websocket_wallets(["W"], retries=2, delay=0))
     assert result is False
     assert conn.calls == 2
+
+
+def test_record_heartbeat_and_supervisor(monkeypatch, tmp_path):
+    mod = _import_module({})
+    hb = tmp_path / 'hb.txt'
+    monkeypatch.setattr(mod, 'HEARTBEAT_FILE', str(hb))
+    mod.record_heartbeat()
+    assert hb.read_text()
+
+    calls = 0
+
+    async def fail_loop():
+        nonlocal calls
+        calls += 1
+        raise RuntimeError('boom')
+
+    monkeypatch.setattr(mod, 'monitor_loop', fail_loop)
+    async def fast_sleep(*_):
+        pass
+
+    monkeypatch.setattr(mod.asyncio, 'sleep', fast_sleep)
+    asyncio.run(mod.supervisor_loop(delay=0, max_restarts=2))
+    assert calls == 2
