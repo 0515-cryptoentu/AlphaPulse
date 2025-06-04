@@ -77,20 +77,32 @@ async def analyze_wallet(wallet):
 
     tokens = set()
     last_active = 0
+    trade_sizes = []
 
     for tx in recent_txs:
         block_time = tx.get("blockTime", 0)
         if block_time > last_active:
             last_active = block_time
-        for transfer in tx.get("tokenTransfers", []):
+        transfers = tx.get("tokenTransfers", [])
+        trade_sizes.append(len(transfers))
+        for transfer in transfers:
             token = transfer.get("tokenAddress")
             if token:
                 tokens.add(token)
 
+    avg_trade_size = sum(trade_sizes) / len(trade_sizes) if trade_sizes else 0
+
+    midpoint = (MIN_TRADES + MAX_TRADES) / 2
+    spread = (MAX_TRADES - MIN_TRADES) / 2
+    activity_score = 1 - abs(len(recent_txs) - midpoint) / spread if spread else 1
+    if activity_score < 0:
+        activity_score = 0
+
     score = (
-        len(recent_txs) * 0.5
-        + len(tokens) * 0.4
-        + (1 if last_active > time.time() - 86400 else 0) * 0.1
+        len(recent_txs) * 0.4
+        + len(tokens) * 0.3
+        + avg_trade_size * 0.1
+        + activity_score * 0.2
     ) * 10
 
     return {
@@ -98,6 +110,7 @@ async def analyze_wallet(wallet):
         "tx_count": len(recent_txs),
         "token_count": len(tokens),
         "last_active": last_active,
+        "avg_trade_size": avg_trade_size,
         "score": score,
     }
 
