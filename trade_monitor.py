@@ -2,7 +2,11 @@ import asyncio
 import json
 import logging
 from solana.rpc.api import Client
-from solana.publickey import PublicKey
+try:
+    from solana.publickey import PublicKey
+except Exception:  # pragma: no cover - compatibility with newer solana-py
+    from solders.pubkey import Pubkey as PublicKey
+import websockets
 from copy_engine import execute_trade
 import config
 
@@ -91,14 +95,8 @@ def detect_platform(instructions):
     return "Unknown"
 
 
-async def monitor_loop():
-    wallets = load_wallets()
-    if not wallets:
-        logging.error("❌ No wallets loaded.")
-        return
-
-    logging.info(f"🔍 Monitoring {len(wallets)} wallets...")
-
+async def _poll_wallets(wallets):
+    """Fallback polling implementation."""
     while True:
         for wallet in wallets:
             signatures = get_recent_signatures(wallet, limit=2)
@@ -120,6 +118,71 @@ async def monitor_loop():
                 await asyncio.sleep(0.25)
 
         await asyncio.sleep(10)
+
+
+async def _websocket_wallets(wallets) -> bool:
+    """Attempt monitoring via WebSocket. Returns True on success."""
+    ws_url = (config.HELIUS_RPC_URL or config.RPC_URL).replace("https://", "wss://").replace("http://", "ws://")
+    request_map = {}
+    sub_map = {}
+    req_id = 1
+    try:
+        async with websockets.connect(ws_url) as ws:
+            for wallet in wallets:
+                params = [{"mentions": [wallet]}, {"commitment": "confirmed"}]
+                await ws.send(json.dumps({"jsonrpc": "2.0", "id": req_id, "method": "logsSubscribe", "params": params}))
+                request_map[req_id] = wallet
+                req_id += 1
+
+            while len(sub_map) < len(request_map):
+                data = json.loads(await ws.recv())
+                if "id" in data and data.get("result") is not None:
+                    wallet = request_map.pop(data["id"], None)
+                    if wallet:
+                        sub_map[data["result"]] = wallet
+
+            logging.info("🔗 WebSocket subscriptions established")
+
+            while True:
+                message = json.loads(await ws.recv())
+                if message.get("method") != "logsNotification":
+                    continue
+                params = message.get("params", {})
+                result = params.get("result", {})
+                sub_id = params.get("subscription")
+                wallet = sub_map.get(sub_id)
+                if not wallet:
+                    continue
+                signature = result.get("signature")
+                slot = result.get("context", {}).get("slot")
+                if not signature or (wallet, slot) in SLOT_HISTORY:
+                    continue
+
+                tx = get_transaction(signature)
+                trade = detect_swap(tx, wallet)
+                if trade:
+                    logging.info(f"🟢 Trade Detected: {trade}")
+                    await execute_trade(trade)
+
+                SLOT_HISTORY[(wallet, slot)] = True
+                await asyncio.sleep(0.25)
+    except Exception as exc:  # pragma: no cover - network dependent
+        logging.warning(f"WebSocket failed: {exc}")
+        return False
+    return True
+
+
+async def monitor_loop():
+    wallets = load_wallets()
+    if not wallets:
+        logging.error("❌ No wallets loaded.")
+        return
+
+    logging.info(f"🔍 Monitoring {len(wallets)} wallets...")
+
+    if not await _websocket_wallets(wallets):
+        logging.info("ℹ️ Falling back to polling mode")
+        await _poll_wallets(wallets)
 
 
 if __name__ == "__main__":
