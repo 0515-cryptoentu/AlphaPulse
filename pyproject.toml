@@ -21,6 +21,7 @@ dependencies = [
     "oauth2client",
     "pandas",
     "tweepy",
+    "hvac",
 ]
 
 [project.optional-dependencies]
