@@ -3,26 +3,25 @@ import aiohttp
 import re
 import json
 from solana.rpc.api import Client
-from solana.publickey import PublicKey
 import tweepy
-import os
+import config
 
 # Set up Solana RPC client
-RPC_URL = os.getenv("HELIUS_RPC_URL")
+RPC_URL = config.CONFIG.helius_rpc_url or config.CONFIG.rpc_url
 client = Client(RPC_URL)
 
 # Cielo API URL and key
 CIELO_API = "https://feed-api.cielo.finance/api/v1/feed"
-API_KEY = os.getenv("CIELO_API_KEY")
+API_KEY = config.CONFIG.cielo_api_key
 WHALETRACKER_API = "https://whaletracker.xyz/api/topwallets"
 MIN_TX_COUNT = 3
 MAX_AVG_INTERVAL = 3600 * 6  # 6 hours
 
 # Twitter API credentials (Replace these with your actual credentials)
-API_KEY_TWITTER = os.getenv("TWITTER_API_KEY")
-API_SECRET_KEY_TWITTER = os.getenv("TWITTER_API_SECRET")
-ACCESS_TOKEN_TWITTER = os.getenv("TWITTER_ACCESS_TOKEN")
-ACCESS_TOKEN_SECRET_TWITTER = os.getenv("TWITTER_ACCESS_SECRET")
+API_KEY_TWITTER = config.CONFIG.twitter_api_key
+API_SECRET_KEY_TWITTER = config.CONFIG.twitter_api_secret
+ACCESS_TOKEN_TWITTER = config.CONFIG.twitter_access_token
+ACCESS_TOKEN_SECRET_TWITTER = config.CONFIG.twitter_access_secret
 
 # Twitter API Authentication using Tweepy
 auth = tweepy.OAuth1UserHandler(

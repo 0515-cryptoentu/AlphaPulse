@@ -1,10 +1,8 @@
 import pandas as pd
-from collections import defaultdict
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-import os
-from datetime import datetime
 import logging
+import config
 from utils import log
 
 # Set up Google Sheets connection
@@ -12,7 +10,7 @@ scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive",
 ]
-creds_file = os.getenv("GOOGLE_CREDENTIALS", "google_credentials.json")
+creds_file = config.CONFIG.google_credentials
 creds = ServiceAccountCredentials.from_json_keyfile_name(creds_file, scope)
 client = gspread.authorize(creds)
 

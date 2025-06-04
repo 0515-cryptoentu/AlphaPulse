@@ -41,6 +41,7 @@ include:
 - `CIELO_API_KEY` – API key for Cielo wallet scraping
 - `TWITTER_API_KEY`, `TWITTER_API_SECRET`, etc. – Twitter credentials
 - `BIRDEYE_API_KEY` – for token volume lookups
+- `GOOGLE_CREDENTIALS` – path to the Google service account JSON used for Sheets uploads
 - `VAULT_ADDR`, `VAULT_TOKEN`, `VAULT_SECRET_PATH` – settings to pull the above
   credentials from HashiCorp Vault if available
 
