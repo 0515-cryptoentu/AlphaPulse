@@ -14,6 +14,7 @@ This bot monitors high-performing Solana wallets and mirrors their trades using 
 4. Start the bot: `python main.py`
 5. Interact with it in Telegram using `/start` and `/status`.
 6. Run the wallet discovery script regularly to refresh `monitored_wallets.json`.
+7. Trade history is stored in both `trade_log.csv` and a SQLite database `trades.db`. The database is created automatically on first run.
 
 Trade smart and only use funds you're willing to lose.
 
