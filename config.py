@@ -1,7 +1,9 @@
+import os
+
 PRACTICE_MODE = True
-TELEGRAM_BOT_TOKEN = "7261646193:AAGSoFusuPhmTYYQwma_wFxitXOirdbgFmE"
-USER_WALLET_PRIVATE_KEY = "6mV1iJocPzqozgStD5RTTtETVuGkwY49kaCvU7nuVRsk"
-RPC_URL = "https://api.mainnet-beta.solana.com"
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+USER_WALLET_PRIVATE_KEY = os.getenv("USER_WALLET_PRIVATE_KEY")
+RPC_URL = os.getenv("RPC_URL", "https://api.mainnet-beta.solana.com")
 MONITORED_WALLETS = [
     "5fWkLJfoDsRAaXhPJcJY19qNtDDQ5h6q1SPzsAPRrUNG",
     "EdCNh8EzETJLFphW8yvdY7rDd8zBiyweiz8DU5gUUUka",

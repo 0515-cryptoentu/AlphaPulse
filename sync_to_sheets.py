@@ -1,8 +1,9 @@
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import csv
+import os
 
-CREDENTIALS_FILE = "google_credentials.json"
+CREDENTIALS_FILE = os.getenv("GOOGLE_CREDENTIALS", "google_credentials.json")
 SHEET_NAME = "Solana Copy Trades"
 
 def sync_csv_to_google_sheet():
