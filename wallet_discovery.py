@@ -1,4 +1,5 @@
-import requests
+import asyncio
+import aiohttp
 import sqlite3
 import json
 import time
@@ -44,21 +45,23 @@ def init_db():
     conn.close()
 
 
-def fetch_transactions(wallet):
+async def fetch_transactions(wallet):
     url = (
         f"https://public-api.solscan.io/account/transactions?account={wallet}&limit=25"
     )
     try:
-        res = requests.get(url)
-        if res.status_code == 200:
-            return res.json()
+        timeout = aiohttp.ClientTimeout(total=10)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(url) as res:
+                if res.status == 200:
+                    return await res.json()
     except Exception as e:
         log(f"Error fetching tx for {wallet}: {e}")
     return []
 
 
-def analyze_wallet(wallet):
-    txs = fetch_transactions(wallet)
+async def analyze_wallet(wallet):
+    txs = await fetch_transactions(wallet)
     if not txs:
         return None
 
@@ -151,17 +154,17 @@ def export_to_json(wallets):
     log(f"Exported top {len(wallets)} wallets to {JSON_OUTPUT}")
 
 
-def run_discovery():
+async def run_discovery():
     init_db()
-    results = []
-
     log("Scanning seed wallets...")
-    for wallet in SEED_WALLETS:
-        data = analyze_wallet(wallet)
+
+    tasks = [analyze_wallet(wallet) for wallet in SEED_WALLETS]
+    results = []
+    for wallet, data in zip(SEED_WALLETS, await asyncio.gather(*tasks)):
         if data:
             log(f"{wallet} - Score: {data['score']:.2f}")
             results.append(data)
-        time.sleep(1)
+        await asyncio.sleep(1)
 
     store_wallets(results)
     top = get_top_wallets()
@@ -169,4 +172,4 @@ def run_discovery():
 
 
 if __name__ == "__main__":
-    run_discovery()
+    asyncio.run(run_discovery())
