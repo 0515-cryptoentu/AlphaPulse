@@ -1,14 +1,14 @@
 import datetime
 from wallet_manager import get_balance
 import gspread
-import os
 import logging
+import config
 from utils import log
 
 
 def log_daily_balance():
     try:
-        creds_file = os.getenv("GOOGLE_CREDENTIALS", "google_credentials.json")
+        creds_file = config.CONFIG.google_credentials
         gc = gspread.service_account(filename=creds_file)
         sh = gc.open("Solana Copy Trades")
         summary_sheet = sh.worksheet("Daily Summary")

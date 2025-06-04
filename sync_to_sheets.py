@@ -1,9 +1,7 @@
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import csv
-import os
 
-CREDENTIALS_FILE = os.getenv("GOOGLE_CREDENTIALS", "google_credentials.json")
 SHEET_NAME = "Solana Copy Trades"
 
 
@@ -12,7 +10,10 @@ def sync_csv_to_google_sheet():
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive",
     ]
-    creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, scope)
+    import config
+
+    creds_file = config.CONFIG.google_credentials
+    creds = ServiceAccountCredentials.from_json_keyfile_name(creds_file, scope)
     client = gspread.authorize(creds)
 
     try:
