@@ -3,6 +3,8 @@ import time
 from solana.rpc.api import Client
 from solana.publickey import PublicKey
 import config
+import logging
+from utils import log
 
 WALLET_DB = "wallet_repository.db"
 
@@ -39,17 +41,17 @@ def get_recent_activity(wallet):
     try:
         res = client.get_signatures_for_address(PublicKey(wallet), limit=20)
         if res is None or "result" not in res:
-            print(f"❌ Helius RPC failed for {wallet}: {res}")
+            log(f"❌ Helius RPC failed for {wallet}: {res}", logging.ERROR)
             return 0, -1
 
         signatures = res.get("result", [])
         if not signatures:
-            print(f"⚠️ No transactions found for {wallet}")
+            log(f"⚠️ No transactions found for {wallet}", logging.WARNING)
             return 0, -1
 
         timestamps = [sig["blockTime"] for sig in signatures if sig.get("blockTime")]
         if len(timestamps) < 2:
-            print(f"⚠️ Not enough timestamps for {wallet}")
+            log(f"⚠️ Not enough timestamps for {wallet}", logging.WARNING)
             return len(timestamps), -1
 
         timestamps.sort(reverse=True)
@@ -60,15 +62,16 @@ def get_recent_activity(wallet):
 
         roi = calculate_roi(wallet)
 
-        print(
-            f"🟢 {wallet} | tx_count: {len(signatures)}, avg_interval: {avg_interval:.1f} sec, ROI: {roi:.2f}"
+        log(
+            f"🟢 {wallet} | tx_count: {len(signatures)}, avg_interval: {avg_interval:.1f} sec, ROI: {roi:.2f}",
+            logging.INFO,
         )
         return len(signatures), avg_interval
 
     except Exception as e:
         import traceback
 
-        print(f"❌ Error checking {wallet}: {e}")
+        log(f"❌ Error checking {wallet}: {e}", logging.ERROR)
         traceback.print_exc()
         return 0, -1
 

@@ -2,6 +2,8 @@ import datetime
 from wallet_manager import get_balance
 import gspread
 import os
+import logging
+from utils import log
 
 
 def log_daily_balance():
@@ -14,9 +16,9 @@ def log_daily_balance():
         balance = get_balance()
         now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         summary_sheet.append_row([now, balance])
-        print(f"[✓] Logged balance {balance:.4f} SOL at {now}")
+        log(f"[✓] Logged balance {balance:.4f} SOL at {now}", logging.INFO)
     except Exception as e:
-        print(f"[✗] Failed to log daily balance: {e}")
+        log(f"[✗] Failed to log daily balance: {e}", logging.ERROR)
 
 
 if __name__ == "__main__":
