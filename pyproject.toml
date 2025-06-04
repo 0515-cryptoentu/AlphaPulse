@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "alphapulse"
+version = "0.1.0"
+description = "Solana copy trading bot"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{name = "AlphaPulse Developers"}]
+license = {file = "LICENSE"}
+
+dependencies = [
+    "solana",
+    "python-telegram-bot==13.15",
+    "requests",
+    "websocket-client",
+    "aiohttp",
+    "gspread",
+    "oauth2client",
+    "pandas",
+    "tweepy",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+alphapulse = "alphapulse_cli:main"
+
+[tool.setuptools]
+py-modules = [
+    "auto_sell",
+    "config",
+    "copy_engine",
+    "daily_balance_logger",
+    "export_monitored_wallets",
+    "generate_wallet",
+    "jupiter_trader",
+    "main",
+    "portfolio_tracker",
+    "risk_manager",
+    "sync_to_sheets",
+    "telegram_bot",
+    "trade_log",
+    "trade_monitor",
+    "utils",
+    "wallet_curator",
+    "wallet_discovery",
+    "wallet_manager",
+    "wallet_scraper",
+    "alphapulse_cli",
+]
+packages = ["training"]
