@@ -16,7 +16,7 @@ async def execute_trade(trade):
     token_out = trade["token_out"]
     signature = trade["signature"]
 
-    if is_risky_token(token_out):
+    if await is_risky_token(token_out):
         log(f"[RISK] Skipping risky token {token_out}")
         return
 
@@ -31,13 +31,13 @@ async def execute_trade(trade):
 
     if config.PRACTICE_MODE:
         log(f"[PRACTICE] Copying {wallet}: {token_out}")
-        log_trade(token_out, "FAKECOIN", 0, sol_amount, f"sim-{signature[-6:]}")
-        mark_new_token(token_out, get_sol_usd_price(), 0)
+        await log_trade(token_out, "FAKECOIN", 0, sol_amount, f"sim-{signature[-6:]}")
+        mark_new_token(token_out, await get_sol_usd_price(), 0)
     else:
-        route = fetch_jupiter_swap_route(token_in, token_out, lamports)
+        route = await fetch_jupiter_swap_route(token_in, token_out, lamports)
         if route:
-            result = execute_jupiter_swap(route)
+            result = await execute_jupiter_swap(route)
             if result:
                 log(f"[LIVE] Executed buy: {result}")
-                log_trade(token_out, "LIVECOIN", 0, sol_amount, result["result"])
-                mark_new_token(token_out, get_sol_usd_price(), 0)
+                await log_trade(token_out, "LIVECOIN", 0, sol_amount, result["result"])
+                mark_new_token(token_out, await get_sol_usd_price(), 0)

@@ -3,7 +3,7 @@ import base64
 import importlib
 import os
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 import pytest
 
 # Skip if Solana client library missing
@@ -26,13 +26,13 @@ def test_execute_trade_practice_mode():
         "signature": "abcdef123456",
     }
 
-    with patch.object(copy_engine, "is_risky_token", return_value=False), \
+    with patch.object(copy_engine, "is_risky_token", new_callable=AsyncMock, return_value=False), \
          patch.object(copy_engine, "get_balance", return_value=1.0), \
-         patch.object(copy_engine, "log_trade") as log_trade_mock, \
+         patch.object(copy_engine, "log_trade", new_callable=AsyncMock) as log_trade_mock, \
          patch.object(copy_engine, "mark_new_token") as mark_token_mock, \
-         patch.object(copy_engine, "get_sol_usd_price", return_value=Decimal("10")), \
-         patch.object(copy_engine, "fetch_jupiter_swap_route") as fetch_mock, \
-        patch.object(copy_engine, "execute_jupiter_swap") as exec_mock:
+         patch.object(copy_engine, "get_sol_usd_price", new_callable=AsyncMock, return_value=Decimal("10")), \
+         patch.object(copy_engine, "fetch_jupiter_swap_route", new_callable=AsyncMock) as fetch_mock, \
+         patch.object(copy_engine, "execute_jupiter_swap", new_callable=AsyncMock) as exec_mock:
         asyncio.run(copy_engine.execute_trade(trade))
         log_trade_mock.assert_called_once()
         mark_token_mock.assert_called_once()
