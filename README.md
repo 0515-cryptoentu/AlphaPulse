@@ -16,6 +16,16 @@ This bot monitors high-performing Solana wallets and mirrors their trades using 
 6. Run the wallet discovery script regularly to refresh `monitored_wallets.json`.
 7. Trade history is stored in both `trade_log.csv` and a SQLite database `trades.db`. The database is created automatically on first run.
 
+## Training and Backtesting
+
+Use the historical data in `trades.db` to experiment with different trading strategies. Run:
+
+```bash
+python -m training.backtest --db trades.db
+```
+
+The command supports options for position size, win rate, and other parameters to simulate how changes impact performance.
+
 Trade smart and only use funds you're willing to lose.
 
 ## Environment Variables
