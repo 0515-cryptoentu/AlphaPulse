@@ -3,6 +3,7 @@ from wallet_manager import get_balance
 import gspread
 import os
 
+
 def log_daily_balance():
     try:
         creds_file = os.getenv("GOOGLE_CREDENTIALS", "google_credentials.json")
@@ -16,6 +17,7 @@ def log_daily_balance():
         print(f"[✓] Logged balance {balance:.4f} SOL at {now}")
     except Exception as e:
         print(f"[✗] Failed to log daily balance: {e}")
+
 
 if __name__ == "__main__":
     log_daily_balance()
