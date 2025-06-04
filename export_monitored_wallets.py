@@ -7,7 +7,25 @@ MAX_WALLETS = 10
 MIN_TX_COUNT = 1
 MAX_AVG_INTERVAL = 3600 * 24  # 12 hours
 
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS wallets (
+            wallet TEXT PRIMARY KEY,
+            source TEXT,
+            last_seen INTEGER,
+            tx_count INTEGER,
+            avg_tx_interval REAL,
+            is_active INTEGER DEFAULT 1,
+            notes TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
 def export_top_wallets():
+    init_db()
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''
