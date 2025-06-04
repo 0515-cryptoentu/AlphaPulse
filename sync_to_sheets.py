@@ -6,8 +6,12 @@ import os
 CREDENTIALS_FILE = os.getenv("GOOGLE_CREDENTIALS", "google_credentials.json")
 SHEET_NAME = "Solana Copy Trades"
 
+
 def sync_csv_to_google_sheet():
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    scope = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/drive",
+    ]
     creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, scope)
     client = gspread.authorize(creds)
 

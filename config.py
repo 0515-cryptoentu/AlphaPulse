@@ -7,7 +7,7 @@ RPC_URL = os.getenv("RPC_URL", "https://api.mainnet-beta.solana.com")
 MONITORED_WALLETS = [
     "5fWkLJfoDsRAaXhPJcJY19qNtDDQ5h6q1SPzsAPRrUNG",
     "EdCNh8EzETJLFphW8yvdY7rDd8zBiyweiz8DU5gUUUka",
-    "5CP6zv8a17mz91v6rMruVH6ziC5qAL8GFaJzwrX9Fvup"
+    "5CP6zv8a17mz91v6rMruVH6ziC5qAL8GFaJzwrX9Fvup",
 ]
 MIN_BALANCE_SOL = 0.1
 TRADE_SLIPPAGE = 0.005

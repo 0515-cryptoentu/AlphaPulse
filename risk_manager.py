@@ -7,6 +7,7 @@ BLACKLIST_FILE = "token_blacklist.txt"
 # Configurable thresholds
 MIN_24H_VOLUME_USD = 5000
 
+
 def is_token_blacklisted(token_mint):
     try:
         with open(BLACKLIST_FILE, "r") as f:
@@ -15,12 +16,13 @@ def is_token_blacklisted(token_mint):
     except FileNotFoundError:
         return False
 
+
 def get_token_volume_usd(token_mint):
     try:
         resp = requests.get(
             f"https://public-api.birdeye.so/public/token/{token_mint}",
             headers={"X-API-KEY": "public"},
-            timeout=5
+            timeout=5,
         )
         data = resp.json()
         volume = data.get("data", {}).get("volume_usd_24h", 0)
@@ -28,6 +30,7 @@ def get_token_volume_usd(token_mint):
     except Exception as e:
         log(f"[RISK] Failed to fetch token volume: {e}")
         return 0
+
 
 def is_risky_token(token_mint):
     if is_token_blacklisted(token_mint):

@@ -11,16 +11,17 @@ from sync_to_sheets import sync_csv_to_google_sheet
 portfolio = {}
 
 # Parameters
-ROI_TARGET = Decimal("1.20")        # 20% gain
-TRAILING_STOP_LOSS = Decimal("0.85") # Sell if price drops 15% from peak
+ROI_TARGET = Decimal("1.20")  # 20% gain
+TRAILING_STOP_LOSS = Decimal("0.85")  # Sell if price drops 15% from peak
 MAX_HOLD_DURATION = timedelta(hours=3)  # Max time to hold token
+
 
 # Placeholder function for real-time SPL token price
 def fetch_token_price_usd(token_mint):
     try:
         resp = requests.get(
             f"https://price.jup.ag/v4/price?ids={token_mint}&vsToken=So11111111111111111111111111111111111111112",
-            timeout=5
+            timeout=5,
         )
         data = resp.json()
         price_sol = Decimal(str(data["data"][token_mint]["price"]))
@@ -29,6 +30,7 @@ def fetch_token_price_usd(token_mint):
     except Exception as e:
         log(f"[WARNING] Failed to fetch price for {token_mint}: {e}")
         return Decimal("0.00")
+
 
 def check_portfolio_for_sells():
     to_sell = []
@@ -49,7 +51,9 @@ def check_portfolio_for_sells():
             portfolio[token_mint]["peak_price"] = current_price
             peak_price = current_price
 
-        log(f"[AUTO-SELL] {token_mint}: Entry={entry_price}, Now={current_price:.2f}, ROI={roi:.2f}, Held={time_held}")
+        log(
+            f"[AUTO-SELL] {token_mint}: Entry={entry_price}, Now={current_price:.2f}, ROI={roi:.2f}, Held={time_held}"
+        )
 
         if roi >= ROI_TARGET and current_price < peak_price * TRAILING_STOP_LOSS:
             log(f"[AUTO-SELL] Trailing stop-loss triggered for {token_mint}")
@@ -60,14 +64,16 @@ def check_portfolio_for_sells():
 
     return to_sell
 
+
 def mark_new_token(token_mint, entry_price, amount):
     portfolio[token_mint] = {
         "entry_price": Decimal(entry_price),
         "amount": amount,
         "entry_time": datetime.utcnow(),
-        "peak_price": Decimal(entry_price)
+        "peak_price": Decimal(entry_price),
     }
     log(f"[PORTFOLIO] Added {token_mint} at {entry_price} USD")
+
 
 def execute_sell(token_mint):
     if token_mint not in portfolio:
@@ -78,10 +84,19 @@ def execute_sell(token_mint):
         return
 
     usd_value = Decimal(info["amount"]) * current_price
-    log_trade(token_mint, "AUTOSELL", info["amount"], Decimal("0.01"), f"AUTOSELL-{token_mint[:6]}")
+    log_trade(
+        token_mint,
+        "AUTOSELL",
+        info["amount"],
+        Decimal("0.01"),
+        f"AUTOSELL-{token_mint[:6]}",
+    )
     sync_csv_to_google_sheet()
-    log(f"[SELL] {token_mint}: Sold {info['amount']} tokens at {current_price:.2f} USD, Total: {usd_value:.2f} USD")
+    log(
+        f"[SELL] {token_mint}: Sold {info['amount']} tokens at {current_price:.2f} USD, Total: {usd_value:.2f} USD"
+    )
     del portfolio[token_mint]
+
 
 if __name__ == "__main__":
     mark_new_token("DUMMY2TOKEN2222", "1.00", 1000)

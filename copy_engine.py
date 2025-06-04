@@ -10,6 +10,7 @@ import random
 
 MINT_SOL = "So11111111111111111111111111111111111111112"
 
+
 async def execute_trade(trade):
     wallet = trade["wallet"]
     token_in = trade["token_in"]

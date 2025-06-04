@@ -16,6 +16,7 @@ client = Client(RPC_URL)
 
 logging.basicConfig(level=logging.INFO)
 
+
 def load_wallets():
     try:
         with open(MONITORED_FILE, "r") as f:
@@ -26,6 +27,7 @@ def load_wallets():
     except Exception as e:
         logging.error(f"Error loading wallets: {e}")
         return []
+
 
 def get_recent_signatures(wallet, limit=2):
     try:
@@ -42,6 +44,7 @@ def get_recent_signatures(wallet, limit=2):
         logging.error(f"❌ Signature fetch error for {wallet}: {e}")
         return []
 
+
 def get_transaction(signature):
     try:
         res = client.get_transaction(signature, encoding="jsonParsed")
@@ -49,6 +52,7 @@ def get_transaction(signature):
     except Exception as e:
         logging.error(f"Error getting tx {signature}: {e}")
         return None
+
 
 def detect_swap(tx, wallet):
     if not tx or not tx.get("meta"):
@@ -58,8 +62,12 @@ def detect_swap(tx, wallet):
     pre_token_balances = tx["meta"].get("preTokenBalances", [])
     post_token_balances = tx["meta"].get("postTokenBalances", [])
 
-    tokens_in = [bal.get("mint") for bal in pre_token_balances if bal.get("owner") == wallet]
-    tokens_out = [bal.get("mint") for bal in post_token_balances if bal.get("owner") == wallet]
+    tokens_in = [
+        bal.get("mint") for bal in pre_token_balances if bal.get("owner") == wallet
+    ]
+    tokens_out = [
+        bal.get("mint") for bal in post_token_balances if bal.get("owner") == wallet
+    ]
 
     if tokens_in and tokens_out and tokens_in != tokens_out:
         return {
@@ -68,9 +76,10 @@ def detect_swap(tx, wallet):
             "slot": tx["slot"],
             "token_in": tokens_in[0],
             "token_out": tokens_out[0],
-            "platform": detect_platform(instructions)
+            "platform": detect_platform(instructions),
         }
     return None
+
 
 def detect_platform(instructions):
     for ix in instructions:
@@ -82,6 +91,7 @@ def detect_platform(instructions):
         if pid == "RVKd61ztZW9jqhDDP1LrL6KSMpGQfq9s8qkQSfH9nY6":
             return "Raydium"
     return "Unknown"
+
 
 async def monitor_loop():
     wallets = load_wallets()
@@ -112,6 +122,7 @@ async def monitor_loop():
                 time.sleep(0.25)
 
         await asyncio.sleep(10)
+
 
 if __name__ == "__main__":
     try:
