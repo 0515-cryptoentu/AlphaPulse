@@ -38,7 +38,8 @@ def test_analyze_wallet(monkeypatch):
         "tx_count": 2,
         "token_count": 2,
         "last_active": now - 1000,
-        "score": pytest.approx(19.0),
+        "avg_trade_size": pytest.approx(1.5),
+        "score": pytest.approx(16.5),
     }
 
 

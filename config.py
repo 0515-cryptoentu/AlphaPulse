@@ -96,6 +96,7 @@ class Config:
     twitter_access_token: Optional[str] = None
     twitter_access_secret: Optional[str] = None
     google_credentials: str = "google_credentials.json"
+    min_tx_count_lower: int = 1
 
     @classmethod
     def load(
@@ -140,6 +141,7 @@ class Config:
             google_credentials=env.get(
                 "GOOGLE_CREDENTIALS", "google_credentials.json"
             ),
+            min_tx_count_lower=int(env.get("MIN_TX_COUNT_LOWER", 1)),
         )
 
         cfg._validate()
@@ -184,3 +186,4 @@ MONITORED_WALLETS = [
 ]
 MIN_BALANCE_SOL = 0.1
 TRADE_SLIPPAGE = 0.005
+MIN_TX_COUNT_LOWER = CONFIG.min_tx_count_lower

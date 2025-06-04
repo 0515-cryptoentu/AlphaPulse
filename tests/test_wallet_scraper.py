@@ -40,6 +40,7 @@ def test_fetch_wallets_from_cielo(monkeypatch):
         "TWITTER_API_SECRET": "b",
         "TWITTER_ACCESS_TOKEN": "c",
         "TWITTER_ACCESS_SECRET": "d",
+        "MIN_TX_COUNT_LOWER": "2",
     }
     with patch.dict(os.environ, env):
         wallet_scraper = importlib.import_module("wallet_scraper")
@@ -47,8 +48,8 @@ def test_fetch_wallets_from_cielo(monkeypatch):
 
     wallet = "9djU9o4CD14ak5G4TNLp1KvqbWZ4BptU6WyquvDjWYJz"
     session = MockSession({"data": [{"wallet": wallet}]})
-    monkeypatch.setattr(wallet_scraper, "get_tx_metrics", lambda w: (5, 100))
+    monkeypatch.setattr(wallet_scraper, "get_tx_metrics", lambda w: (2, 100))
     result = asyncio.run(wallet_scraper.fetch_wallets_from_cielo(session, wallet))
     assert result == [
-        {"wallet": wallet, "source": "cielo", "tx_count": 5, "avg_interval": 100}
+        {"wallet": wallet, "source": "cielo", "tx_count": 2, "avg_interval": 100}
     ]
