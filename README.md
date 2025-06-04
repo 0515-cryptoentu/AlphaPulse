@@ -32,8 +32,9 @@ Trade smart and only use funds you're willing to lose.
 
 ## Environment Variables
 
-The bot reads credentials and API keys from environment variables. Key values
-include:
+The bot reads credentials and API keys from environment variables. The mandatory
+settings are `TELEGRAM_BOT_TOKEN`, `USER_WALLET_PRIVATE_KEY` and either
+`RPC_URL` or `HELIUS_RPC_URL`. Other useful variables include:
 
 - `TELEGRAM_BOT_TOKEN` – token for the Telegram bot
 - `USER_WALLET_PRIVATE_KEY` – base64 encoded private key for trading
@@ -43,18 +44,37 @@ include:
 - `BIRDEYE_API_KEY` – for token volume lookups
 - `GOOGLE_CREDENTIALS` – path to the Google service account JSON used for Sheets uploads
 - `VAULT_ADDR`, `VAULT_TOKEN`, `VAULT_SECRET_PATH` – settings to pull the above
-  credentials from HashiCorp Vault if available
+  credentials from [HashiCorp Vault](https://www.vaultproject.io/). When these
+  are set the bot fails fast if any required secret cannot be retrieved.
+
+To store the required values in Vault:
+
+```bash
+vault write secret/alphapulse \
+  TELEGRAM_BOT_TOKEN=123:abc \
+  USER_WALLET_PRIVATE_KEY=<base64 key> \
+  RPC_URL=https://api.mainnet-beta.solana.com
+```
+
+Then run the bot with the Vault environment variables set:
+
+```bash
+VAULT_ADDR=http://127.0.0.1:8200 \
+VAULT_TOKEN=myroot \
+VAULT_SECRET_PATH=secret/alphapulse \
+alphapulse bot
+```
 
 See `.env.example` for the complete list.
 
 ### Protecting wallet keys
 
 If a secrets manager isn’t available, encrypt the value of
-`USER_WALLET_PRIVATE_KEY` before storing it. One simple approach is using
-`openssl`:
+`USER_WALLET_PRIVATE_KEY` before storing it. An example helper script is
+included in `scripts/encrypt_wallet_key.sh` and uses `openssl` under the hood:
 
 ```bash
-echo "<base64 key>" | openssl aes-256-cbc -salt -out wallet.key.enc
+scripts/encrypt_wallet_key.sh <base64 key> wallet.key.enc
 ```
 
 Decrypt at runtime and export the result as `USER_WALLET_PRIVATE_KEY`.
