@@ -43,6 +43,7 @@ settings are `TELEGRAM_BOT_TOKEN`, `USER_WALLET_PRIVATE_KEY` and either
 - `TWITTER_API_KEY`, `TWITTER_API_SECRET`, etc. – Twitter credentials
 - `BIRDEYE_API_KEY` – for token volume lookups
 - `GOOGLE_CREDENTIALS` – path to the Google service account JSON used for Sheets uploads
+- `MIN_TX_COUNT_LOWER` – lowest transaction count to include when scraping new wallets
 - `VAULT_ADDR`, `VAULT_TOKEN`, `VAULT_SECRET_PATH` – settings to pull the above
   credentials from [HashiCorp Vault](https://www.vaultproject.io/). When these
   are set the bot fails fast if any required secret cannot be retrieved.

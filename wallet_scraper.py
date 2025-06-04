@@ -15,6 +15,7 @@ CIELO_API = "https://feed-api.cielo.finance/api/v1/feed"
 API_KEY = config.CONFIG.cielo_api_key
 WHALETRACKER_API = "https://whaletracker.xyz/api/topwallets"
 MIN_TX_COUNT = 3
+MIN_TX_COUNT_LOWER = config.MIN_TX_COUNT_LOWER
 MAX_AVG_INTERVAL = 3600 * 6  # 6 hours
 
 # Twitter API credentials (Replace these with your actual credentials)
@@ -73,7 +74,7 @@ def get_tx_metrics(wallet):
 def add_wallet(wallets, wallet, source):
     if re.match(r"^[1-9A-HJ-NP-Za-km-z]{32,44}$", wallet):
         tx_count, avg = get_tx_metrics(wallet)
-        if tx_count >= MIN_TX_COUNT and (avg < MAX_AVG_INTERVAL and avg > 0):
+        if tx_count >= MIN_TX_COUNT_LOWER and (avg < MAX_AVG_INTERVAL and avg > 0):
             wallets.append(
                 {
                     "wallet": wallet,
