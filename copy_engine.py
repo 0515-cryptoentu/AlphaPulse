@@ -6,7 +6,6 @@ from auto_sell import mark_new_token
 from risk_manager import is_risky_token
 from utils import log
 import config
-import random
 
 MINT_SOL = "So11111111111111111111111111111111111111112"
 
