@@ -7,6 +7,8 @@ import argparse
 from typing import Iterable, Dict, Any
 
 import pandas as pd
+import logging
+from utils import log
 
 from . import load_trade_history, DB_FILE
 
@@ -62,9 +64,9 @@ def main(argv: Iterable[str] | None = None) -> None:
     )
     results = simulate(trades, strat)
 
-    print(f"Trades: {results['trades']}")
-    print(f"Final balance: {results['final_balance']:.2f} USD")
-    print(f"ROI: {results['roi'] * 100:.2f}%")
+    log(f"Trades: {results['trades']}", logging.INFO)
+    log(f"Final balance: {results['final_balance']:.2f} USD", logging.INFO)
+    log(f"ROI: {results['roi'] * 100:.2f}%", logging.INFO)
 
 
 if __name__ == "__main__":

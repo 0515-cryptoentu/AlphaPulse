@@ -1,5 +1,7 @@
 import sqlite3
 import json
+import logging
+from utils import log
 
 DB_PATH = "wallet_repository.db"
 OUTPUT_FILE = "monitored_wallets.json"
@@ -58,7 +60,7 @@ def export_top_wallets():
     with open(OUTPUT_FILE, "w") as f:
         json.dump(output, f, indent=2)
 
-    print(f"✅ Exported {len(output)} wallets to {OUTPUT_FILE}")
+    log(f"✅ Exported {len(output)} wallets to {OUTPUT_FILE}", logging.INFO)
 
 
 if __name__ == "__main__":
