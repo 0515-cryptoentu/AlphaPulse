@@ -8,4 +8,6 @@ oauth2client
 pandas
 tweepy
 hvac
+fastapi
+uvicorn
 pytest

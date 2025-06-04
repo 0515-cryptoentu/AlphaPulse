@@ -22,6 +22,8 @@ dependencies = [
     "pandas",
     "tweepy",
     "hvac",
+    "fastapi",
+    "uvicorn",
 ]
 
 [project.optional-dependencies]
