@@ -40,3 +40,4 @@ def is_risky_token(token_mint):
         return True
 
     return False
+

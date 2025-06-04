@@ -154,3 +154,4 @@ if __name__ == "__main__":
             add_wallet(all_wallets, wallet, src)
     export_json(all_wallets)
     print("✅ Scraping complete. Run wallet_curator.py to update stats.")
+

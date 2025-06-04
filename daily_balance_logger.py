@@ -19,3 +19,4 @@ def log_daily_balance():
 
 if __name__ == "__main__":
     log_daily_balance()
+

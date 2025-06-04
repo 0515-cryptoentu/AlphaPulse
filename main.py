@@ -8,3 +8,4 @@ if __name__ == "__main__":
     threading.Thread(target=asyncio.run, args=(monitor_loop(),)).start()
     start_bot()
 
+

@@ -14,3 +14,4 @@ def start_bot():
     dp.add_handler(CommandHandler("status", status))
     updater.start_polling()
     updater.idle()
+

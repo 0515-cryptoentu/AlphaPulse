@@ -40,3 +40,4 @@ async def execute_trade(trade):
                 log(f"[LIVE] Executed buy: {result}")
                 log_trade(token_out, "LIVECOIN", 0, sol_amount, result["result"])
                 mark_new_token(token_out, get_sol_usd_price(), 0)
+

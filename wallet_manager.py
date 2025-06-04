@@ -1,6 +1,5 @@
 from solana.keypair import Keypair
 from solana.rpc.api import Client
-from solana.transaction import Transaction
 import base64
 import config
 

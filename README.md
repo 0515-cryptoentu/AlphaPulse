@@ -21,3 +21,4 @@ Trade smart and only use funds you're willing to lose.
 
 The bot reads credentials and API keys from environment variables. Refer to
 `.env.example` for the full list of supported variables.
+

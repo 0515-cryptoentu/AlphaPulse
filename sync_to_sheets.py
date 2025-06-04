@@ -22,3 +22,4 @@ def sync_csv_to_google_sheet():
         sheet.update("A1", reader)
 
     print("✅ trade_log.csv synced to Google Sheets.")
+

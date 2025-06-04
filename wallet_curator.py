@@ -77,3 +77,4 @@ def update_wallet_stats():
                       (tx_count, avg_interval, int(time.time()), wallet))
     conn.commit()
     conn.close()
+
