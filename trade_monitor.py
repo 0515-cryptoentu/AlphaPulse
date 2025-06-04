@@ -8,6 +8,7 @@ except Exception:  # pragma: no cover - compatibility with newer solana-py
     from solders.pubkey import Pubkey as PublicKey
 import websockets
 from copy_engine import execute_trade
+from datetime import datetime
 import config
 
 # RPC endpoint configured via unified ``config``
@@ -17,6 +18,18 @@ SLOT_HISTORY = {}  # Prevent re-processing
 client = Client(config.HELIUS_RPC_URL or config.RPC_URL)
 
 logging.basicConfig(level=logging.INFO)
+
+# Heartbeat file updated on every successful monitoring iteration
+HEARTBEAT_FILE = "monitor_heartbeat.txt"
+
+
+def record_heartbeat() -> None:
+    """Write the current UTC timestamp to ``HEARTBEAT_FILE``."""
+    try:
+        with open(HEARTBEAT_FILE, "w") as f:
+            f.write(datetime.utcnow().isoformat())
+    except Exception as exc:
+        logging.error(f"Failed to write heartbeat: {exc}")
 
 
 def load_wallets():
@@ -98,6 +111,7 @@ def detect_platform(instructions):
 async def _poll_wallets(wallets):
     """Fallback polling implementation."""
     while True:
+        record_heartbeat()
         for wallet in wallets:
             signatures = get_recent_signatures(wallet, limit=2)
             for sig in signatures:
@@ -147,6 +161,7 @@ async def _websocket_wallets(wallets, retries: int = 3, delay: float = 1.0) -> b
                 logging.info("🔗 WebSocket subscriptions established")
 
                 while True:
+                    record_heartbeat()
                     message = json.loads(await ws.recv())
                     if message.get("method") != "logsNotification":
                         continue
@@ -166,6 +181,8 @@ async def _websocket_wallets(wallets, retries: int = 3, delay: float = 1.0) -> b
                     if trade:
                         logging.info(f"🟢 Trade Detected: {trade}")
                         await execute_trade(trade)
+
+                    record_heartbeat()
 
                     SLOT_HISTORY[(wallet, slot)] = True
                     await asyncio.sleep(0.25)
@@ -192,8 +209,21 @@ async def monitor_loop():
         await _poll_wallets(wallets)
 
 
+async def supervisor_loop(delay: float = 5.0, max_restarts: int | None = None) -> None:
+    """Restart ``monitor_loop`` if it exits with an error."""
+    restarts = 0
+    while max_restarts is None or restarts < max_restarts:
+        try:
+            await monitor_loop()
+        except Exception as exc:  # pragma: no cover - runtime safety
+            logging.error(f"Monitor crashed: {exc}")
+        restarts += 1
+        logging.info(f"Restarting monitor in {delay} seconds")
+        await asyncio.sleep(delay)
+
+
 if __name__ == "__main__":
     try:
-        asyncio.run(monitor_loop())
+        asyncio.run(supervisor_loop())
     except KeyboardInterrupt:
         logging.info("🛑 Monitor stopped by user.")

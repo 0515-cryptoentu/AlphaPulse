@@ -104,6 +104,15 @@ Serve the frontend files (for example using `python -m http.server` from
 `dashboard/frontend`) and open `index.html` in your browser. The page renders
 charts of balance and per-token performance using data from the backend.
 
+## Failover and Monitoring
+
+`trade_monitor.py` first attempts to monitor wallets via WebSocket. If that
+connection fails it automatically falls back to polling the RPC endpoint.
+Both strategies run under a supervisor which restarts the monitor when an
+unhandled error occurs. The monitor writes its last heartbeat timestamp to
+`monitor_heartbeat.txt` which the dashboard exposes through the `/heartbeat`
+endpoint so the bot's liveness can be observed.
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
