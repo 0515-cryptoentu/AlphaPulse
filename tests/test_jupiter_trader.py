@@ -72,3 +72,41 @@ def test_execute_jupiter_swap(monkeypatch):
     assert result == {"result": "sig"}
     tx_mock.sign.assert_called_once()
     jupiter_trader.client.send_transaction.assert_called_once()
+
+
+class SeqFactory:
+    """Factory returning sessions with sequential responses."""
+
+    def __init__(self, responses):
+        self._responses = list(responses)
+        self.calls = 0
+
+    def __call__(self):
+        data, status = self._responses[self.calls]
+        self.calls += 1
+        return MockSession(data, status)
+
+
+def test_execute_jupiter_swap_retries(monkeypatch):
+    tx_bytes = b"tx"
+    responses = [
+        (None, 500),
+        ({"swapTransaction": base64.b64encode(tx_bytes).decode()}, 200),
+    ]
+    factory = SeqFactory(responses)
+    monkeypatch.setattr(jupiter_trader.aiohttp, "ClientSession", factory)
+    tx_mock = MagicMock()
+    monkeypatch.setattr(jupiter_trader.Transaction, "deserialize", lambda b: tx_mock)
+    jupiter_trader.client.send_transaction = MagicMock(return_value={"result": "sig"})
+    result = asyncio.run(jupiter_trader.execute_jupiter_swap({}, retries=2, delay=0))
+    assert result == {"result": "sig"}
+    assert factory.calls == 2
+
+
+def test_execute_jupiter_swap_retry_failure(monkeypatch):
+    responses = [(None, 500), (None, 500)]
+    factory = SeqFactory(responses)
+    monkeypatch.setattr(jupiter_trader.aiohttp, "ClientSession", factory)
+    result = asyncio.run(jupiter_trader.execute_jupiter_swap({}, retries=2, delay=0))
+    assert result is None
+    assert factory.calls == 2

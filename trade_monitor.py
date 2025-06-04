@@ -120,55 +120,62 @@ async def _poll_wallets(wallets):
         await asyncio.sleep(10)
 
 
-async def _websocket_wallets(wallets) -> bool:
+async def _websocket_wallets(wallets, retries: int = 3, delay: float = 1.0) -> bool:
     """Attempt monitoring via WebSocket. Returns True on success."""
     ws_url = (config.HELIUS_RPC_URL or config.RPC_URL).replace("https://", "wss://").replace("http://", "ws://")
-    request_map = {}
-    sub_map = {}
-    req_id = 1
-    try:
-        async with websockets.connect(ws_url) as ws:
-            for wallet in wallets:
-                params = [{"mentions": [wallet]}, {"commitment": "confirmed"}]
-                await ws.send(json.dumps({"jsonrpc": "2.0", "id": req_id, "method": "logsSubscribe", "params": params}))
-                request_map[req_id] = wallet
-                req_id += 1
+    for attempt in range(1, retries + 1):
+        request_map = {}
+        sub_map = {}
+        req_id = 1
+        try:
+            async with websockets.connect(ws_url) as ws:
+                for wallet in wallets:
+                    params = [{"mentions": [wallet]}, {"commitment": "confirmed"}]
+                    await ws.send(
+                        json.dumps({"jsonrpc": "2.0", "id": req_id, "method": "logsSubscribe", "params": params})
+                    )
+                    request_map[req_id] = wallet
+                    req_id += 1
 
-            while len(sub_map) < len(request_map):
-                data = json.loads(await ws.recv())
-                if "id" in data and data.get("result") is not None:
-                    wallet = request_map.pop(data["id"], None)
-                    if wallet:
-                        sub_map[data["result"]] = wallet
+                while len(sub_map) < len(request_map):
+                    data = json.loads(await ws.recv())
+                    if "id" in data and data.get("result") is not None:
+                        wallet = request_map.pop(data["id"], None)
+                        if wallet:
+                            sub_map[data["result"]] = wallet
 
-            logging.info("🔗 WebSocket subscriptions established")
+                logging.info("🔗 WebSocket subscriptions established")
 
-            while True:
-                message = json.loads(await ws.recv())
-                if message.get("method") != "logsNotification":
-                    continue
-                params = message.get("params", {})
-                result = params.get("result", {})
-                sub_id = params.get("subscription")
-                wallet = sub_map.get(sub_id)
-                if not wallet:
-                    continue
-                signature = result.get("signature")
-                slot = result.get("context", {}).get("slot")
-                if not signature or (wallet, slot) in SLOT_HISTORY:
-                    continue
+                while True:
+                    message = json.loads(await ws.recv())
+                    if message.get("method") != "logsNotification":
+                        continue
+                    params = message.get("params", {})
+                    result = params.get("result", {})
+                    sub_id = params.get("subscription")
+                    wallet = sub_map.get(sub_id)
+                    if not wallet:
+                        continue
+                    signature = result.get("signature")
+                    slot = result.get("context", {}).get("slot")
+                    if not signature or (wallet, slot) in SLOT_HISTORY:
+                        continue
 
-                tx = get_transaction(signature)
-                trade = detect_swap(tx, wallet)
-                if trade:
-                    logging.info(f"🟢 Trade Detected: {trade}")
-                    await execute_trade(trade)
+                    tx = get_transaction(signature)
+                    trade = detect_swap(tx, wallet)
+                    if trade:
+                        logging.info(f"🟢 Trade Detected: {trade}")
+                        await execute_trade(trade)
 
-                SLOT_HISTORY[(wallet, slot)] = True
-                await asyncio.sleep(0.25)
-    except Exception as exc:  # pragma: no cover - network dependent
-        logging.warning(f"WebSocket failed: {exc}")
-        return False
+                    SLOT_HISTORY[(wallet, slot)] = True
+                    await asyncio.sleep(0.25)
+        except Exception as exc:  # pragma: no cover - network dependent
+            logging.warning(f"WebSocket attempt {attempt} failed: {exc}")
+            if attempt < retries:
+                await asyncio.sleep(delay)
+                continue
+            logging.error("WebSocket retries exhausted")
+            return False
     return True
 
 

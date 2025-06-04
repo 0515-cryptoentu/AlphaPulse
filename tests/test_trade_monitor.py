@@ -2,6 +2,7 @@ import json
 import importlib
 import os
 import base64
+import asyncio
 from unittest.mock import patch, MagicMock
 import pytest
 
@@ -59,3 +60,27 @@ def test_get_recent_signatures_and_transaction(monkeypatch):
     assert sigs == [{"signature": "s", "slot": 1}]
     tx = mod.get_transaction("s")
     assert tx == "tx"
+
+
+def test_websocket_wallets_retry(monkeypatch):
+    mod = _import_module({})
+
+    class FailConn:
+        def __init__(self):
+            self.calls = 0
+
+        def __call__(self, *a, **k):
+            self.calls += 1
+            return self
+
+        async def __aenter__(self):
+            raise ConnectionError("fail")
+
+        async def __aexit__(self, exc_type, exc, tb):
+            pass
+
+    conn = FailConn()
+    monkeypatch.setattr(mod.websockets, "connect", conn)
+    result = asyncio.run(mod._websocket_wallets(["W"], retries=2, delay=0))
+    assert result is False
+    assert conn.calls == 2
