@@ -12,7 +12,7 @@ import argparse
 import logging
 import os
 from dataclasses import dataclass
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Dict
 
 
 def _load_dotenv(path: str = ".env") -> None:
@@ -32,6 +32,38 @@ def _load_dotenv(path: str = ".env") -> None:
                 continue
             key, value = line.split("=", 1)
             os.environ.setdefault(key, value)
+
+
+def _load_from_vault(env: Dict[str, str]) -> Dict[str, str]:
+    """Load secret values from HashiCorp Vault if configuration is present."""
+    addr = env.get("VAULT_ADDR")
+    token = env.get("VAULT_TOKEN")
+    secret_path = env.get("VAULT_SECRET_PATH")
+    if not (addr and token and secret_path):
+        return env
+
+    try:
+        import hvac
+    except Exception:  # pragma: no cover - optional dependency
+        logging.warning("hvac library missing, skipping Vault secrets")
+        return env
+
+    client = hvac.Client(url=addr, token=token)
+    if not client.is_authenticated():
+        logging.error("Vault authentication failed")
+        return env
+
+    try:
+        secret = client.secrets.kv.v2.read_secret_version(path=secret_path)
+    except Exception as exc:  # pragma: no cover - network errors
+        logging.error("Error loading Vault secret: %s", exc)
+        return env
+
+    data = secret.get("data", {}).get("data", {})
+    for key, value in data.items():
+        env.setdefault(key, value)
+
+    return env
 
 
 @dataclass
@@ -62,6 +94,7 @@ class Config:
         args, _ = parser.parse_known_args(argv)
 
         env = os.environ.copy()
+        env = _load_from_vault(env)
         if args.telegram_bot_token:
             env["TELEGRAM_BOT_TOKEN"] = args.telegram_bot_token
         if args.user_wallet_private_key:

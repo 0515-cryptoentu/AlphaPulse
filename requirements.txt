@@ -7,4 +7,5 @@ gspread
 oauth2client
 pandas
 tweepy
+hvac
 pytest
