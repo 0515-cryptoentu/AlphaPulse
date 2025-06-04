@@ -192,3 +192,9 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+# Project secrets
+.env
+google_credentials.json
+trade_log.csv
+wallets.db
+wallet_repository.db

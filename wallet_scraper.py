@@ -5,23 +5,24 @@ import json
 from solana.rpc.api import Client
 from solana.publickey import PublicKey
 import tweepy
+import os
 
 # Set up Solana RPC client
-RPC_URL = "https://mainnet.helius-rpc.com/?api-key=22d4c858-530c-4749-adfb-5ffaba4c7a70"
+RPC_URL = os.getenv("HELIUS_RPC_URL")
 client = Client(RPC_URL)
 
 # Cielo API URL and key
 CIELO_API = "https://feed-api.cielo.finance/api/v1/feed"
-API_KEY = "21d113e1-fb1d-4832-b168-dce0a2103bed"  # Replace with your Cielo API key
+API_KEY = os.getenv("CIELO_API_KEY")
 WHALETRACKER_API = "https://whaletracker.xyz/api/topwallets"
 MIN_TX_COUNT = 3
 MAX_AVG_INTERVAL = 3600 * 6  # 6 hours
 
 # Twitter API credentials (Replace these with your actual credentials)
-API_KEY_TWITTER = 'H1j3jC4r3DsPIlUGekt07yhBw'  # Your API Key
-API_SECRET_KEY_TWITTER = 'H39K5eIc1jC66ylT2PM9UgEwAb8h5Vv4veDgjCSXBktXIF2zVr'  # Your API Secret Key
-ACCESS_TOKEN_TWITTER = '1519681623272345602-4tk4dncpSWtlIW8GyJm6MnMB8N1zGd'  # Your Access Token
-ACCESS_TOKEN_SECRET_TWITTER = '4VbtrOA0l0WRW8pujHIOmSIrf5XurMKjvHpa0sZ8dM70A'  # Your Access Token Secret
+API_KEY_TWITTER = os.getenv("TWITTER_API_KEY")
+API_SECRET_KEY_TWITTER = os.getenv("TWITTER_API_SECRET")
+ACCESS_TOKEN_TWITTER = os.getenv("TWITTER_ACCESS_TOKEN")
+ACCESS_TOKEN_SECRET_TWITTER = os.getenv("TWITTER_ACCESS_SECRET")
 
 # Twitter API Authentication using Tweepy
 auth = tweepy.OAuth1UserHandler(consumer_key=API_KEY_TWITTER, consumer_secret=API_SECRET_KEY_TWITTER, 

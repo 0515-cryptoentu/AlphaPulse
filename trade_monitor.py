@@ -5,9 +5,10 @@ import logging
 from solana.rpc.api import Client
 from solana.publickey import PublicKey
 from copy_engine import execute_trade
+import os
 
 # ✅ Live RPC endpoint using your Helius API key
-RPC_URL = "https://mainnet.helius-rpc.com/?api-key=22d4c858-530c-4749-adfb-5ffaba4c7a70"
+RPC_URL = os.getenv("HELIUS_RPC_URL")
 MONITORED_FILE = "monitored_wallets.json"
 SLOT_HISTORY = {}  # Prevent re-processing
 
