@@ -8,6 +8,8 @@ import os
 
 # ✅ Live RPC endpoint using your Helius API key
 RPC_URL = os.getenv("HELIUS_RPC_URL")
+if not RPC_URL:
+    raise EnvironmentError("HELIUS_RPC_URL environment variable is required")
 MONITORED_FILE = "monitored_wallets.json"
 SLOT_HISTORY = {}  # Prevent re-processing
 
