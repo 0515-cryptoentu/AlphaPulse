@@ -1,4 +1,11 @@
 import os
+import logging
+
+# Basic logging configuration.  Modules obtain loggers via ``logging.getLogger``.
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    format="%(asctime)s %(levelname)s %(message)s",
+)
 
 PRACTICE_MODE = True
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")

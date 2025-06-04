@@ -1,4 +1,12 @@
-def log(msg):
-    from datetime import datetime
+"""Utility helpers for AlphaPulse."""
 
-    print(f"[{datetime.now().isoformat()}] {msg}")
+import logging
+
+# Initialize a module level logger. Configuration is applied in ``config.py``.
+logger = logging.getLogger("AlphaPulse")
+
+
+def log(msg, level=logging.INFO):
+    """Log ``msg`` with the specified log ``level`` (default INFO)."""
+
+    logger.log(level, msg)

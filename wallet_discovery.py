@@ -3,6 +3,8 @@ import sqlite3
 import json
 import time
 
+from utils import log
+
 DB_FILE = "wallets.db"
 JSON_OUTPUT = "monitored_wallets.json"
 MAX_WALLETS = 10
@@ -51,7 +53,7 @@ def fetch_transactions(wallet):
         if res.status_code == 200:
             return res.json()
     except Exception as e:
-        print(f"Error fetching tx for {wallet}: {e}")
+        log(f"Error fetching tx for {wallet}: {e}")
     return []
 
 
@@ -146,18 +148,18 @@ def get_top_wallets():
 def export_to_json(wallets):
     with open(JSON_OUTPUT, "w") as f:
         json.dump(wallets, f, indent=2)
-    print(f"✅ Exported top {len(wallets)} wallets to {JSON_OUTPUT}")
+    log(f"Exported top {len(wallets)} wallets to {JSON_OUTPUT}")
 
 
 def run_discovery():
     init_db()
     results = []
 
-    print("🔍 Scanning seed wallets...")
+    log("Scanning seed wallets...")
     for wallet in SEED_WALLETS:
         data = analyze_wallet(wallet)
         if data:
-            print(f"✅ {wallet} - Score: {data['score']:.2f}")
+            log(f"{wallet} - Score: {data['score']:.2f}")
             results.append(data)
         time.sleep(1)
 
