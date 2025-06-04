@@ -1,6 +1,5 @@
 import asyncio
 import json
-import time
 import logging
 from solana.rpc.api import Client
 from solana.publickey import PublicKey
@@ -119,7 +118,7 @@ async def monitor_loop():
                     await execute_trade(trade)
 
                 SLOT_HISTORY[(wallet, slot)] = True
-                time.sleep(0.25)
+                await asyncio.sleep(0.25)
 
         await asyncio.sleep(10)
 
