@@ -90,6 +90,20 @@ pytest
 
 These tests cover wallet loading and basic risk checks.
 
+## Dashboard
+
+Run a lightweight dashboard to inspect trades and portfolio state.
+
+Start the API backend:
+
+```bash
+uvicorn dashboard.backend.main:app --reload
+```
+
+Serve the frontend files (for example using `python -m http.server` from
+`dashboard/frontend`) and open `index.html` in your browser. The page renders
+charts of balance and per-token performance using data from the backend.
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
