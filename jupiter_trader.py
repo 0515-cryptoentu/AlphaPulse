@@ -6,6 +6,7 @@ from solana.transaction import Transaction
 from solana.keypair import Keypair
 from solana.rpc.types import TxOpts
 import config
+import os
 
 client = Client(config.RPC_URL)
 wallet = Keypair.from_secret_key(base64.b64decode(config.USER_WALLET_PRIVATE_KEY))
