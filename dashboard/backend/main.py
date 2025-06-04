@@ -4,6 +4,9 @@ import sqlite3
 import csv
 import trade_log
 import wallet_manager
+from datetime import datetime
+
+WALLET_DB = "wallet_repository.db"
 
 app = FastAPI(title="AlphaPulse Dashboard")
 
@@ -63,6 +66,29 @@ def _read_trades(limit: int | None = None):
             pass
     return trades
 
+
+def _read_wallet_stats():
+    stats = []
+    try:
+        conn = sqlite3.connect(WALLET_DB)
+        cur = conn.execute(
+            "SELECT wallet, tx_count, avg_tx_interval, last_seen FROM wallets"
+        )
+        rows = cur.fetchall()
+        conn.close()
+        for row in rows:
+            stats.append(
+                {
+                    "wallet": row[0],
+                    "tx_count": row[1],
+                    "avg_interval": row[2],
+                    "last_seen": row[3],
+                }
+            )
+    except Exception:
+        pass
+    return stats
+
 @app.get("/balance")
 def balance():
     try:
@@ -86,3 +112,40 @@ def metrics():
         "total_sol": total_sol,
         "num_trades": len(data),
     }
+
+
+@app.get("/pnl")
+def pnl():
+    data = _read_trades()
+    total_buy = sum(t["usd_value"] for t in data if t["token_symbol"] != "AUTOSELL")
+    total_sell = sum(t["usd_value"] for t in data if t["token_symbol"] == "AUTOSELL")
+    return {
+        "total_buy_usd": total_buy,
+        "total_sell_usd": total_sell,
+        "pnl_usd": total_sell - total_buy,
+    }
+
+
+@app.get("/portfolio")
+def portfolio():
+    try:
+        import auto_sell
+
+        holdings = [
+            {
+                "token_mint": k,
+                "entry_price": float(v["entry_price"]),
+                "amount": v["amount"],
+                "entry_time": v["entry_time"].isoformat(),
+                "peak_price": float(v.get("peak_price", v["entry_price"])),
+            }
+            for k, v in auto_sell.portfolio.items()
+        ]
+    except Exception:
+        holdings = []
+    return {"portfolio": holdings}
+
+
+@app.get("/wallet_stats")
+def wallet_stats():
+    return {"wallets": _read_wallet_stats()}
