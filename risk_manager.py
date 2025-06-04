@@ -1,4 +1,4 @@
-import requests
+import aiohttp
 from utils import log
 
 # Blacklist file
@@ -17,27 +17,28 @@ def is_token_blacklisted(token_mint):
         return False
 
 
-def get_token_volume_usd(token_mint):
+async def get_token_volume_usd(token_mint):
     try:
-        resp = requests.get(
-            f"https://public-api.birdeye.so/public/token/{token_mint}",
-            headers={"X-API-KEY": "public"},
-            timeout=5,
-        )
-        data = resp.json()
-        volume = data.get("data", {}).get("volume_usd_24h", 0)
-        return float(volume)
+        timeout = aiohttp.ClientTimeout(total=5)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(
+                f"https://public-api.birdeye.so/public/token/{token_mint}",
+                headers={"X-API-KEY": "public"},
+            ) as resp:
+                data = await resp.json()
+                volume = data.get("data", {}).get("volume_usd_24h", 0)
+                return float(volume)
     except Exception as e:
         log(f"[RISK] Failed to fetch token volume: {e}")
         return 0
 
 
-def is_risky_token(token_mint):
+async def is_risky_token(token_mint):
     if is_token_blacklisted(token_mint):
         log(f"[RISK] Token {token_mint} is blacklisted.")
         return True
 
-    volume = get_token_volume_usd(token_mint)
+    volume = await get_token_volume_usd(token_mint)
     if volume < MIN_24H_VOLUME_USD:
         log(f"[RISK] Token {token_mint} has low 24h volume: ${volume:.2f}")
         return True

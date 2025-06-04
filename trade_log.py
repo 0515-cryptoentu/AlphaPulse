@@ -1,7 +1,7 @@
 import csv
 from datetime import datetime
 from decimal import Decimal
-import requests
+import aiohttp
 
 CSV_FILE = "trade_log.csv"
 
@@ -26,22 +26,24 @@ def init_log():
         pass
 
 
-def get_sol_usd_price():
+async def get_sol_usd_price():
     try:
-        resp = requests.get(
-            "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd",
-            timeout=5,
-        )
-        price = resp.json()["solana"]["usd"]
-        return Decimal(str(price))
+        timeout = aiohttp.ClientTimeout(total=5)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(
+                "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+            ) as resp:
+                data = await resp.json()
+                price = data["solana"]["usd"]
+                return Decimal(str(price))
     except Exception as e:
         print(f"[WARNING] Failed to fetch SOL/USD price: {e}")
         return Decimal("165.00")  # Fallback to a fixed average SOL price for practice
 
 
-def log_trade(token_mint, token_symbol, amount_token, amount_sol, tx_signature):
+async def log_trade(token_mint, token_symbol, amount_token, amount_sol, tx_signature):
     init_log()
-    sol_usd = get_sol_usd_price()
+    sol_usd = await get_sol_usd_price()
     usd_value = Decimal(amount_sol) * sol_usd
     with open(CSV_FILE, "a", newline="") as f:
         writer = csv.writer(f)
