@@ -11,3 +11,4 @@ hvac
 fastapi
 uvicorn
 pytest
+solana
