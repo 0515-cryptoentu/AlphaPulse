@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AlphaPulse — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --surface: #0d1117;
+    --surface2: #141b23;
+    --border: #1e2a36;
+    --accent: #00ff88;
+    --accent2: #00c4ff;
+    --warn: #ffaa00;
+    --danger: #ff4455;
+    --text: #e2eaf3;
+    --muted: #4a5a6a;
+    --mono: 'Space Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+ 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+ 
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,255,136,0.015) 2px,
+      rgba(0,255,136,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+ 
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+ 
+  .logo {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+ 
+  .logo-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+ 
+  @keyframes pulse-dot {
+    0%,100% { opacity: 1; box-shadow: 0 0 8px var(--accent); }
+    50%      { opacity: 0.5; box-shadow: 0 0 2px var(--accent); }
+  }
+ 
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+ 
+  .mode-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    padding: 4px 10px;
+    border-radius: 2px;
+    border: 1px solid;
+  }
+ 
+  .mode-badge.practice {
+    color: var(--warn);
+    border-color: var(--warn);
+    background: rgba(255,170,0,0.08);
+  }
+ 
+  .mode-badge.live {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(0,255,136,0.08);
+  }
+ 
+  .status-row {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+ 
+  .status-row span { color: var(--accent); }
+ 
+  /* Layout */
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: calc(100vh - 57px);
+  }
+ 
+  /* Sidebar */
+  nav {
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+ 
+  .nav-section {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    padding: 16px 20px 6px;
+  }
+ 
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 13px;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    position: relative;
+  }
+ 
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+ 
+  .nav-item.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(0,255,136,0.05);
+  }
+ 
+  .nav-icon {
+    width: 16px;
+    text-align: center;
+    font-size: 14px;
+  }
+ 
+  .nav-badge {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 6px;
+    background: rgba(0,255,136,0.15);
+    color: var(--accent);
+    border-radius: 2px;
+  }
+ 
+  /* Main content */
+  main {
+    padding: 28px;
+    overflow-y: auto;
+  }
+ 
+  /* Page title */
+  .page-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+ 
+  .page-heading {
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--text);
+    margin-bottom: 24px;
+    letter-spacing: -0.02em;
+  }
+ 
+  .page-heading strong {
+    font-weight: 500;
+    color: var(--accent);
+  }
+ 
+  /* Stat cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+ 
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.4s ease both;
+  }
+ 
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+  }
+ 
+  .stat-card.green::after  { background: var(--accent); }
+  .stat-card.blue::after   { background: var(--accent2); }
+  .stat-card.yellow::after { background: var(--warn); }
+  .stat-card.red::after    { background: var(--danger); }
+ 
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+ 
+  .stat-card:nth-child(1) { animation-delay: 0.05s; }
+  .stat-card:nth-child(2) { animation-delay: 0.10s; }
+  .stat-card:nth-child(3) { animation-delay: 0.15s; }
+  .stat-card:nth-child(4) { animation-delay: 0.20s; }
+ 
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+ 
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+ 
+  .stat-value.green  { color: var(--accent); }
+  .stat-value.blue   { color: var(--accent2); }
+  .stat-value.yellow { color: var(--warn); }
+  .stat-value.red    { color: var(--danger); }
+ 
+  .stat-sub {
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+ 
+  .stat-sub.up   { color: var(--accent); }
+  .stat-sub.down { color: var(--danger); }
+ 
+  /* Two column grid */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+ 
+  .three-col {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+ 
+  /* Panels */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    animation: fadeUp 0.4s ease both;
+    animation-delay: 0.25s;
+  }
+ 
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+ 
+  .panel-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+  }
+ 
+  .panel-action {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+ 
+  .panel-body { padding: 18px; }
+ 
+  /* Chart area */
+  .chart-area {
+    height: 160px;
+    position: relative;
+    overflow: hidden;
+  }
+ 
+  .chart-area canvas { width: 100% !important; height: 100% !important; }
+ 
+  /* Wallet table */
+  .wallet-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+ 
+  .wallet-table th {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-align: left;
+    padding: 0 0 10px;
+    border-bottom: 1px solid var(--border);
+  }
+ 
+  .wallet-table th:not(:first-child) { text-align: right; }
+ 
+  .wallet-table td {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(30,42,54,0.5);
+    vertical-align: middle;
+  }
+ 
+  .wallet-table td:not(:first-child) { text-align: right; }
+ 
+  .wallet-addr {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+  }
+ 
+  .wallet-addr span {
+    color: var(--muted);
+    font-size: 11px;
+  }
+ 
+  .score-bar-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+ 
+  .score-bar {
+    width: 60px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+ 
+  .score-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.6s ease;
+  }
+ 
+  .score-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    width: 32px;
+    text-align: right;
+  }
+ 
+  .pct { font-family: var(--mono); font-size: 12px; }
+  .pct.pos { color: var(--accent); }
+  .pct.neg { color: var(--danger); }
+  .pct.neu { color: var(--muted); }
+ 
+  /* Trade feed */
+  .trade-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+ 
+  .trade-feed::-webkit-scrollbar { width: 4px; }
+  .trade-feed::-webkit-scrollbar-track { background: transparent; }
+  .trade-feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+ 
+  .trade-row {
+    display: grid;
+    grid-template-columns: 60px 1fr auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(30,42,54,0.5);
+    animation: slideIn 0.3s ease;
+  }
+ 
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+ 
+  .trade-time {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+ 
+  .trade-token {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+ 
+  .trade-token-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+  }
+ 
+  .trade-token-wallet {
+    font-size: 10px;
+    color: var(--muted);
+  }
+ 
+  .trade-side {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    letter-spacing: 0.1em;
+  }
+ 
+  .trade-side.buy  { color: var(--accent);  background: rgba(0,255,136,0.1); }
+  .trade-side.sell { color: var(--danger); background: rgba(255,68,85,0.1); }
+  .trade-side.sim  { color: var(--warn);   background: rgba(255,170,0,0.1); }
+ 
+  .trade-size {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text);
+    text-align: right;
+  }
+ 
+  /* Balance chart sparkline via canvas */
+  #balanceChart {
+    display: block;
+  }
+ 
+  /* Score gauge mini */
+  .gauge-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 0;
+  }
+ 
+  .gauge-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+ 
+  .gauge-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+ 
+  .gauge-label {
+    font-size: 12px;
+    color: var(--text);
+  }
+ 
+  .gauge-val {
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+ 
+  .gauge-track {
+    height: 5px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+ 
+  .gauge-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s ease;
+  }
+ 
+  /* Phase timeline (bottom) */
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+    animation: fadeUp 0.4s ease 0.3s both;
+  }
+ 
+  .phase-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 16px;
+    position: relative;
+  }
+ 
+  .phase-card.active {
+    border-color: var(--accent);
+    background: rgba(0,255,136,0.04);
+  }
+ 
+  .phase-card.done {
+    border-color: var(--muted);
+    opacity: 0.6;
+  }
+ 
+  .phase-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+ 
+  .phase-card.active .phase-num { color: var(--accent); }
+ 
+  .phase-name {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+ 
+  .phase-goal {
+    font-family: var(--mono);
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+ 
+  .phase-card.active .phase-goal { color: var(--accent); }
+  .phase-card.done .phase-goal   { color: var(--muted); }
+ 
+  .phase-items {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+ 
+  .phase-items li {
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+  }
+ 
+  .phase-items li::before { content: '—'; color: var(--border); }
+  .phase-items li.done-item { color: var(--accent); opacity: 0.7; }
+  .phase-items li.done-item::before { content: '✓'; color: var(--accent); }
+ 
+  .phase-eta {
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+ 
+  /* Progress ring */
+  .progress-ring {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 0;
+  }
+ 
+  .ring-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-align: center;
+  }
+ 
+  .ring-value {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+ 
+  /* Checklist */
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+ 
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--surface2);
+    font-size: 12px;
+  }
+ 
+  .check-icon {
+    width: 16px; height: 16px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+ 
+  .check-icon.done { background: rgba(0,255,136,0.2); color: var(--accent); }
+  .check-icon.todo { background: var(--border); color: var(--muted); }
+  .check-icon.next { background: rgba(255,170,0,0.2); color: var(--warn); }
+ 
+  .check-text { color: var(--text); }
+  .check-text.todo-text { color: var(--muted); }
+</style>
+</head>
+<body>
+ 
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    ALPHAPULSE
+  </div>
+  <div class="header-right">
+    <div class="status-row">LAST SYNC <span id="lastSync">—</span></div>
+    <div class="mode-badge practice" id="modeBadge">PRACTICE MODE</div>
+  </div>
+</header>
+ 
+<div class="layout">
+  <nav>
+    <div class="nav-section">MONITOR</div>
+    <div class="nav-item active">
+      <span class="nav-icon">◈</span> Overview
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">⟁</span> Live Trades
+      <span class="nav-badge" id="openCount">0</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">◎</span> Wallets
+    </div>
+ 
+    <div class="nav-section">ANALYSE</div>
+    <div class="nav-item">
+      <span class="nav-icon">▦</span> Performance
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">⌇</span> Backtest
+    </div>
+ 
+    <div class="nav-section">SYSTEM</div>
+    <div class="nav-item">
+      <span class="nav-icon">⊟</span> Config
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">⊞</span> Logs
+    </div>
+  </nav>
+ 
+  <main>
+    <div class="page-title">DASHBOARD / OVERVIEW</div>
+    <div class="page-heading">AlphaPulse <strong>Alpha</strong></div>
+ 
+    <!-- Stat cards -->
+    <div class="stats-grid">
+      <div class="stat-card green">
+        <div class="stat-label">SOL BALANCE</div>
+        <div class="stat-value green" id="solBalance">—</div>
+        <div class="stat-sub" id="balanceUsd">Loading…</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">TOTAL TRADES</div>
+        <div class="stat-value blue" id="totalTrades">—</div>
+        <div class="stat-sub" id="closedTrades">— closed</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-label">WIN RATE</div>
+        <div class="stat-value yellow" id="winRate">—</div>
+        <div class="stat-sub" id="winRateSub">across closed trades</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">OPEN POSITIONS</div>
+        <div class="stat-value" id="openPos" style="color:var(--text)">—</div>
+        <div class="stat-sub" id="openPosSub">in portfolio</div>
+      </div>
+    </div>
+ 
+    <!-- Chart + Wallet scores -->
+    <div class="three-col">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">BALANCE HISTORY</span>
+          <button class="panel-action">7D ▾</button>
+        </div>
+        <div class="panel-body">
+          <div class="chart-area">
+            <canvas id="balanceChart"></canvas>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">WALLET SCORES</span>
+        </div>
+        <div class="panel-body">
+          <div class="gauge-row" id="walletScores">
+            <!-- injected by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- Trade feed + build checklist -->
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">RECENT TRADES</span>
+          <button class="panel-action" onclick="refreshTrades()">↻ REFRESH</button>
+        </div>
+        <div class="panel-body" style="padding:12px 18px">
+          <div class="trade-feed" id="tradeFeed">
+            <!-- injected by JS -->
+          </div>
+        </div>
+      </div>
+ 
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">BUILD PROGRESS</span>
+        </div>
+        <div class="panel-body">
+          <div class="checklist" id="buildChecklist"></div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- Roadmap phases -->
+    <div class="page-title" style="margin-bottom:10px">ROADMAP TO $1K/WEEK</div>
+    <div class="timeline" id="timeline"></div>
+ 
+  </main>
+</div>
+ 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+// ─── Mock data (replace with real API calls to your FastAPI backend) ─────────
+ 
+const MOCK = {
+  sol_balance: 2.84,
+  sol_usd: 168.50,
+  total_trades: 47,
+  closed_trades: 31,
+  win_rate: 0.61,
+  open_positions: 3,
+  balance_history: [
+    { date: 'Mar 17', sol: 3.20 },
+    { date: 'Mar 18', sol: 3.05 },
+    { date: 'Mar 19', sol: 3.41 },
+    { date: 'Mar 20', sol: 3.18 },
+    { date: 'Mar 21', sol: 2.99 },
+    { date: 'Mar 22', sol: 2.74 },
+    { date: 'Mar 23', sol: 2.84 },
+  ],
+  wallets: [
+    { addr: '5fWkLJ…RRUNG', score: 0.71, trades: 18, roi: '+34%' },
+    { addr: 'EdCNh8…UUUka', score: 0.48, trades: 9,  roi: '+2%'  },
+    { addr: '5CP6zv…vup',   score: 0.33, trades: 4,  roi: '-8%'  },
+  ],
+  trades: [
+    { time: '14:32', token: 'BONK',   wallet: '5fWkLJ', side: 'sim',  size: '0.028 SOL', pnl: null },
+    { time: '14:18', token: 'WIF',    wallet: '5fWkLJ', side: 'sim',  size: '0.028 SOL', pnl: '+12%' },
+    { time: '13:55', token: 'MYRO',   wallet: 'EdCNh8', side: 'sim',  size: '0.020 SOL', pnl: '-5%'  },
+    { time: '13:21', token: 'POPCAT', wallet: '5fWkLJ', side: 'sim',  size: '0.028 SOL', pnl: '+28%' },
+    { time: '12:47', token: 'BOME',   wallet: '5CP6zv', side: 'sim',  size: '0.014 SOL', pnl: '-18%' },
+    { time: '11:03', token: 'WIF',    wallet: 'EdCNh8', side: 'sim',  size: '0.020 SOL', pnl: '+7%'  },
+  ],
+};
+ 
+// ─── Populate stats ────────────────────────────────────────────────────────
+ 
+function populateStats() {
+  document.getElementById('solBalance').textContent  = MOCK.sol_balance.toFixed(2) + ' SOL';
+  document.getElementById('balanceUsd').textContent  = '$' + (MOCK.sol_balance * MOCK.sol_usd).toFixed(2) + ' USD';
+  document.getElementById('totalTrades').textContent = MOCK.total_trades;
+  document.getElementById('closedTrades').textContent= MOCK.closed_trades + ' closed';
+  document.getElementById('winRate').textContent     = Math.round(MOCK.win_rate * 100) + '%';
+  document.getElementById('openPos').textContent     = MOCK.open_positions;
+  document.getElementById('openCount').textContent   = MOCK.open_positions;
+  document.getElementById('lastSync').textContent    = new Date().toLocaleTimeString();
+ 
+  if (MOCK.win_rate >= 0.55) {
+    document.getElementById('winRateSub').className = 'stat-sub up';
+    document.getElementById('winRateSub').textContent = '↑ above break-even';
+  }
+}
+ 
+// ─── Balance chart ─────────────────────────────────────────────────────────
+ 
+function drawChart() {
+  const ctx = document.getElementById('balanceChart').getContext('2d');
+  const labels = MOCK.balance_history.map(d => d.date);
+  const data   = MOCK.balance_history.map(d => d.sol);
+ 
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        borderColor: '#00ff88',
+        borderWidth: 1.5,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointHoverBackgroundColor: '#00ff88',
+        tension: 0.4,
+        fill: true,
+        backgroundColor: (ctx) => {
+          const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 160);
+          g.addColorStop(0, 'rgba(0,255,136,0.18)');
+          g.addColorStop(1, 'rgba(0,255,136,0)');
+          return g;
+        },
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        backgroundColor: '#0d1117',
+        borderColor: '#1e2a36',
+        borderWidth: 1,
+        titleColor: '#4a5a6a',
+        bodyColor: '#00ff88',
+        bodyFont: { family: 'Space Mono', size: 12 },
+        callbacks: { label: ctx => ctx.parsed.y.toFixed(3) + ' SOL' }
+      }},
+      scales: {
+        x: { grid: { color: 'rgba(30,42,54,0.5)' }, ticks: { color: '#4a5a6a', font: { family: 'Space Mono', size: 9 } } },
+        y: { grid: { color: 'rgba(30,42,54,0.5)' }, ticks: { color: '#4a5a6a', font: { family: 'Space Mono', size: 9 }, callback: v => v.toFixed(1) } },
+      }
+    }
+  });
+}
+ 
+// ─── Wallet scores ─────────────────────────────────────────────────────────
+ 
+function populateWalletScores() {
+  const el = document.getElementById('walletScores');
+  el.innerHTML = MOCK.wallets.map(w => {
+    const pct   = Math.round(w.score * 100);
+    const color = w.score >= 0.6 ? '#00ff88' : w.score >= 0.4 ? '#ffaa00' : '#ff4455';
+    const roiCls = w.roi.startsWith('+') ? 'pos' : w.roi.startsWith('-') ? 'neg' : 'neu';
+    return `
+      <div class="gauge-item">
+        <div class="gauge-label-row">
+          <span class="gauge-label" style="font-family:var(--mono);font-size:11px">${w.addr}</span>
+          <span class="gauge-val" style="color:${color}">${pct}</span>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-fill" style="width:${pct}%;background:${color}"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:2px">
+          <span style="font-size:10px;color:var(--muted)">${w.trades} trades</span>
+          <span class="pct ${roiCls}" style="font-size:10px">${w.roi} avg ROI</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+ 
+// ─── Trade feed ────────────────────────────────────────────────────────────
+ 
+function populateTrades() {
+  const el = document.getElementById('tradeFeed');
+  el.innerHTML = MOCK.trades.map(t => {
+    const pnlHtml = t.pnl
+      ? `<span class="pct ${t.pnl.startsWith('+') ? 'pos' : 'neg'}">${t.pnl}</span>`
+      : `<span class="pct neu">open</span>`;
+    return `
+      <div class="trade-row">
+        <span class="trade-time">${t.time}</span>
+        <div class="trade-token">
+          <span class="trade-token-name">${t.token}</span>
+          <span class="trade-token-wallet">${t.wallet}…</span>
+        </div>
+        <span class="trade-side ${t.side}">${t.side.toUpperCase()}</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+          <span class="trade-size">${t.size}</span>
+          ${pnlHtml}
+        </div>
+      </div>`;
+  }).join('');
+}
+ 
+function refreshTrades() {
+  document.getElementById('lastSync').textContent = new Date().toLocaleTimeString();
+  populateTrades();
+}
+ 
+// ─── Build checklist ───────────────────────────────────────────────────────
+ 
+const CHECKLIST = [
+  { done: true, text: 'Security: .gitignore + credential rotation' },
+  { done: true, text: 'Dynamic position sizing (copy_engine.py)' },
+  { done: true, text: 'Slippage wired to Jupiter swaps' },
+  { done: true, text: 'wallet_scorer.py — real DB-backed scores' },
+  { done: true, text: 'trade_log.py — wallet + sell_usd_value columns' },
+  { done: true, text: 'auto_sell.py — update_sell_value() wired' },
+  { done: false, next: true, text: 'Dashboard UI (this file!)' },
+  { done: false, text: 'Telegram bot commands (/status, /pause, /resume)' },
+  { done: false, text: 'Backtesting against trades.db' },
+  { done: false, text: 'Go live on mainnet (≥ 3 SOL funded)' },
+];
+ 
+function populateChecklist() {
+  const el = document.getElementById('buildChecklist');
+  el.innerHTML = CHECKLIST.map(item => {
+    const iconClass = item.done ? 'done' : item.next ? 'next' : 'todo';
+    const icon      = item.done ? '✓' : item.next ? '→' : '○';
+    const textClass = item.done || item.next ? 'check-text' : 'check-text todo-text';
+    return `
+      <div class="check-item">
+        <div class="check-icon ${iconClass}">${icon}</div>
+        <span class="${textClass}">${item.text}</span>
+      </div>`;
+  }).join('');
+}
+ 
+// ─── Roadmap timeline ──────────────────────────────────────────────────────
+ 
+const PHASES = [
+  {
+    num: 'PHASE 01',
+    name: 'Foundation',
+    goal: 'Bot runs safely',
+    eta: 'Weeks 1–2 · COMPLETE',
+    status: 'done',
+    items: [
+      { done: true,  text: 'Core architecture' },
+      { done: true,  text: 'Practice mode trading' },
+      { done: true,  text: 'Risk manager + auto-sell' },
+      { done: true,  text: 'Security hardening' },
+      { done: true,  text: 'Wallet scorer live' },
+    ],
+  },
+  {
+    num: 'PHASE 02',
+    name: 'Validation',
+    goal: 'Prove the edge',
+    eta: 'Weeks 3–5 · ACTIVE',
+    status: 'active',
+    items: [
+      { done: true,  text: 'Dashboard + monitoring' },
+      { done: false, text: 'Telegram /status command' },
+      { done: false, text: 'Run 200+ practice trades' },
+      { done: false, text: 'Win rate ≥ 55% confirmed' },
+      { done: false, text: 'Backtest top 3 wallets' },
+    ],
+  },
+  {
+    num: 'PHASE 03',
+    name: 'Go Live',
+    goal: '$500–$1k/mo',
+    eta: 'Weeks 6–10',
+    status: 'todo',
+    items: [
+      { done: false, text: 'Fund wallet (3 SOL min)' },
+      { done: false, text: 'Flip PRACTICE_MODE=false' },
+      { done: false, text: 'Monitor first 20 live trades' },
+      { done: false, text: 'Tune position sizing' },
+      { done: false, text: 'Hit $500 profit milestone' },
+    ],
+  },
+  {
+    num: 'PHASE 04',
+    name: 'Scale',
+    goal: '$1k+/week',
+    eta: 'Month 3+',
+    status: 'todo',
+    items: [
+      { done: false, text: 'Grow capital base' },
+      { done: false, text: 'Add more alpha wallets' },
+      { done: false, text: 'Optimise scorer weights' },
+      { done: false, text: 'Launch as SaaS / subscription' },
+      { done: false, text: 'Build Duolingo-style app' },
+    ],
+  },
+];
+ 
+function populateTimeline() {
+  const el = document.getElementById('timeline');
+  el.innerHTML = PHASES.map(p => `
+    <div class="phase-card ${p.status}">
+      <div class="phase-num">${p.num}</div>
+      <div class="phase-name">${p.name}</div>
+      <div class="phase-goal">${p.goal}</div>
+      <ul class="phase-items">
+        ${p.items.map(i => `<li class="${i.done ? 'done-item' : ''}">${i.text}</li>`).join('')}
+      </ul>
+      <div class="phase-eta">${p.eta}</div>
+    </div>`).join('');
+}
+ 
+// ─── Init ──────────────────────────────────────────────────────────────────
+ 
+populateStats();
+drawChart();
+populateWalletScores();
+populateTrades();
+populateChecklist();
+populateTimeline();
+ 
+// Auto-refresh timestamp every 30s
+setInterval(() => {
+  document.getElementById('lastSync').textContent = new Date().toLocaleTimeString();
+}, 30000);
+</script>
+</body>
+</html>
+ 
