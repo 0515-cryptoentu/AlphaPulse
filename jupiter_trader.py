@@ -25,9 +25,9 @@ from solana.rpc.api import Client
 from solana.rpc.types import TxOpts
 
 try:
-    from solana.keypair import Keypair
+    from solders.keypair import Keypair
 except ImportError:
-    from solders.keypair import Keypair  # solana-py >= 0.30
+    from solana.keypair import Keypair
 
 try:
     from solana.transaction import Transaction
@@ -40,7 +40,7 @@ from utils import log
 
 # ── Clients ───────────────────────────────────────────────────────────────────
 client = Client(config.RPC_URL)
-wallet = Keypair.from_secret_key(base64.b64decode(config.USER_WALLET_PRIVATE_KEY))
+wallet = Keypair.from_bytes(base64.b64decode(config.USER_WALLET_PRIVATE_KEY))
 
 JUPITER_QUOTE_URL = "https://quote-api.jup.ag/v6/quote"
 JUPITER_SWAP_URL  = "https://quote-api.jup.ag/v6/swap"

@@ -803,6 +803,46 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
 // ─── Mock data (replace with real API calls to your FastAPI backend) ─────────
+
+async function fetchLiveData() {
+  try {
+    const [status, metrics, trades, scores] = await Promise.all([
+      fetch('http://localhost:8000/status').then(r => r.json()),
+      fetch('http://localhost:8000/metrics').then(r => r.json()),
+      fetch('http://localhost:8000/trades?limit=10').then(r => r.json()),
+      fetch('http://localhost:8000/wallet_scores').then(r => r.json()),
+    ]);
+    MOCK.sol_balance = status.balance_sol;
+    MOCK.total_trades = metrics.total_trades;
+    MOCK.closed_trades = metrics.closed_trades;
+    MOCK.win_rate = metrics.win_rate;
+    MOCK.open_positions = metrics.open_trades;
+    if (trades.trades) MOCK.trades = trades.trades.map(t => ({
+      time: t.timestamp.slice(11,16),
+      token: t.token_symbol,
+      wallet: t.wallet.slice(0,6),
+      side: 'sim',
+      size: t.amount_sol + ' SOL',
+      pnl: t.pnl_usd ? (t.pnl_usd > 0 ? '+' : '') + t.pnl_usd + ' USD' : null,
+    }));
+    if (scores.wallets) MOCK.wallets = scores.wallets.map(w => ({
+      addr: w.short,
+      score: w.score,
+      trades: 0,
+      roi: w.grade,
+    }));
+  } catch(e) {
+    console.log('API not available, using mock data', e);
+  }
+}
+fetchLiveData().then(() => {
+  populateStats();
+  drawChart();
+  populateWalletScores();
+  populateTrades();
+  populateChecklist();
+  populateTimeline();
+});
  
 const MOCK = {
   sol_balance: 2.84,
@@ -1061,13 +1101,7 @@ function populateTimeline() {
  
 // ─── Init ──────────────────────────────────────────────────────────────────
  
-populateStats();
-drawChart();
-populateWalletScores();
-populateTrades();
-populateChecklist();
-populateTimeline();
- 
+
 // Auto-refresh timestamp every 30s
 setInterval(() => {
   document.getElementById('lastSync').textContent = new Date().toLocaleTimeString();

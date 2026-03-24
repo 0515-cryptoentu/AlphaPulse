@@ -25,16 +25,15 @@ def run_scrape(_: argparse.Namespace) -> None:
         ]
         wallets = await scrape_all_wallets(wallet_list)
         if not wallets:
-            fallback = [
-                ("9djU9o4CD14ak5G4TNLp1KvqbWZ4BptU6WyquvDjWYJz", "known_trader"),
-                ("FjYFNY2KXwRbDMEiEdxAF3uCWJTL5sCHwMGR6ZaSkbtu", "jito_whale"),
-                ("5hFZ9vbK9gXx1NSeYZi1o9nPjLkgzBnJjqVXbVWuTbW", "dex_god"),
+            wallets = [
+                {"wallet": "9djU9o4CD14ak5G4TNLp1KvqbWZ4BptU6WyquvDjWYJz", "source": "fallback", "tx_count": 0, "avg_interval": -1, "win_rate": 0.5, "total_volume": 0.0, "age_days": 0, "score": 0.5},
+                {"wallet": "FjYFNY2KXwRbDMEiEdxAF3uCWJTL5sCHwMGR6ZaSkbtu", "source": "fallback", "tx_count": 0, "avg_interval": -1, "win_rate": 0.5, "total_volume": 0.0, "age_days": 0, "score": 0.5},
+                {"wallet": "5fWkLJfoDsRAaXhPJcJY19qNtDDQ5h6q1SPzsAPRrUNG", "source": "fallback", "tx_count": 0, "avg_interval": -1, "win_rate": 0.5, "total_volume": 0.0, "age_days": 0, "score": 0.5},
+                {"wallet": "EdCNh8EzETJLFphW8yvdY7rDd8zBiyweiz8DU5gUUUka", "source": "fallback", "tx_count": 0, "avg_interval": -1, "win_rate": 0.5, "total_volume": 0.0, "age_days": 0, "score": 0.5},
+                {"wallet": "5CP6zv8a17mz91v6rMruVH6ziC5qAL8GFaJzwrX9Fvup", "source": "fallback", "tx_count": 0, "avg_interval": -1, "win_rate": 0.5, "total_volume": 0.0, "age_days": 0, "score": 0.5},
             ]
-            for w, s in fallback:
-                add_wallet(wallets, w, s)
         export_json(wallets)
-        print("\N{WHITE HEAVY CHECK MARK} Scraping complete. Run wallet_curator.py to update stats.")
-
+        print("✅ Scraping complete.")
     asyncio.run(_scrape())
 
 

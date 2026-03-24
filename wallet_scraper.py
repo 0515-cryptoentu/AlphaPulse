@@ -32,7 +32,7 @@ BIRDEYE_BASE     = "https://public-api.birdeye.so"
 HELIUS_BASE      = f"https://api.helius.xyz/v0"
 
 # ── Quality filters ───────────────────────────────────────────────────────────
-MIN_TX_COUNT      = 20       # minimum number of swap transactions
+MIN_TX_COUNT      = 3       # minimum number of swap transactions
 MAX_AVG_INTERVAL  = 3600 * 8 # max 8 hours avg between trades (active trader)
 MIN_WIN_RATE      = 0.52     # minimum 52% win rate on closed trades
 MIN_TRADE_VOLUME  = 500      # minimum $500 total volume
