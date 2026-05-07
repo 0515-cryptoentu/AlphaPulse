@@ -197,9 +197,16 @@ LOG_LEVEL                = CONFIG.log_level
 
 # Static configuration used across modules
 MONITORED_WALLETS = [
-    "5fWkLJfoDsRAaXhPJcJY19qNtDDQ5h6q1SPzsAPRrUNG",
-    "EdCNh8EzETJLFphW8yvdY7rDd8zBiyweiz8DU5gUUUka",
-    "5CP6zv8a17mz91v6rMruVH6ziC5qAL8GFaJzwrX9Fvup",
+    "AHdUMwfSsmdoFhq84XQVqnNhUU3iyN2hokkz6pFtqMnj",
+    "JD38n7ynKYcgPpF7k1BhXEeREu1KqptU93fVGy3S624k",
+    "2UAeWoJ9ZTv6KDk1j8kNmRsG3yKq4cGSdip459GMR6Ho",
+    "JD25qVdtd65FoiXNmR89JjmoJdYk9sjYQeSTZAALFiMy",
+    "GFHMc9BegxJXLdHJrABxNVoPRdnmVxXiNeoUCEpgXVHw",
+    "5KJEmUWT474k49ZVZrteFYicZbT22sTvvNRRNk75hBpn",
+    "9oJC5gGJRaC99gPQUEv9x3WLr8iAjQojyV9L3YQEqDwR",
+    "Euu7J5JWmvoF4vZ5M2X583jx8c9MgES58xW9SBFKziqq",
+    "EG8XbqqyNmBLHMP2Y2wyPbMX8c6J12YG8KM4GmvWvUeV",
+    "HPZPTbCwN3mRFKCEtcgtGzCCAUpzFzJ4EVdpiqSz7Yic",
 ]
 
 MIN_BALANCE_SOL   = 0.1
